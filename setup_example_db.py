@@ -7,7 +7,7 @@ def create_example_database():
         os.makedirs('data')
         print("📁 Created 'data' directory.")
 
-    db_path = os.path.join('data', 'example_books.db')
+    db_path = os.path.join('data', 'books.db')
 
     # 2. Connect (this creates the file)
     conn = sqlite3.connect(db_path)
@@ -85,4 +85,5 @@ def create_example_database():
     print(f"🎉 Database ready at: {db_path}")
 
 if __name__ == '__main__':
+
     create_example_database()
