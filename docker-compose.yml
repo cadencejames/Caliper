@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  library-admin:
+    build: /mnt/mainpool/appdata/library/source
+    container_name: library_admin
+    restart: unless-stopped
+    ports:
+      - "5011:5000"
+    environment:
+      - APP_MODE=ADMIN
+    volumes:
+      - /mnt/mainpool/appdata/library/data:/app/data
+    
+  library-public:
+    build: /mnt/mainpool/appdata/library/source
+    container_name: library_public
+    restart: unless-stopped
+    ports:
+      - "5010:5000"
+    environment:
+      - APP_MODE=PUBLIC
+    volumes:
+      - /mnt/mainpool/appdata/library/data:/app/data

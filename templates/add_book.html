@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% if book %}Edit Book{% else %}Add New Book{% endif %}</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --accent-color: #4e9f3d; 
+            --border-color: #333333;
+            --input-bg: #252525;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', sans-serif;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 { color: var(--accent-color); margin-top: 0; }
+        .nav-link { color: var(--text-secondary); text-decoration: none; display: block; margin-bottom: 20px;}
+        .nav-link:hover { color: var(--accent-color); }
+
+        form {
+            background-color: var(--surface-color);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        .required { color: var(--accent-color); }
+        
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box; 
+        }
+        input:focus { border-color: var(--accent-color); outline: none; }
+
+        /* Custom Checkbox Styling */
+        .checkbox-group {
+            display: flex;
+            align-items: center; /* Vertically center the checkbox */
+            height: 43px; /* Forces it to match the exact height of the text inputs */
+        }
+        .checkbox-group input { width: auto; margin-right: 10px; transform: scale(1.2); }
+
+        .row { display: flex; gap: 20px; }
+        .col { flex: 1; }
+
+        .btn-group { display: flex; gap: 10px; align-items: flex-end; }
+        
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        button:hover { opacity: 0.9; }
+        
+        #fetch-btn { background-color: #333; border: 1px solid var(--border-color); }
+        #fetch-btn:hover { background-color: #444; }
+        #api-status { font-size: 0.9rem; margin-top: 5px; min-height: 1.2em; }
+        .status-success { color: var(--accent-color); }
+        .status-error { color: #cf6679; }
+    </style>
+</head>
+<body>
+
+    {% if book %}
+        <a href="/book/{{ book['id'] }}" class="nav-link">← Cancel & Back to Details</a>
+    {% else %}
+        <a href="/" class="nav-link">← Cancel & Back to Library</a>
+    {% endif %}
+
+    <h1>{% if book %}Edit Book{% else %}Add New Book{% endif %}</h1>
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="isbn">ISBN (10 or 13)</label>
+            <div class="btn-group">
+                <input type="text" id="isbn" name="isbn" value="{{ book['isbn'] if book else '' }}" placeholder="e.g. 9780441013593">
+                <button type="button" id="fetch-btn">Fetch Info</button>
+            </div>
+            <div id="api-status"></div>
+        </div>
+
+        <div class="row">
+            <div class="col form-group">
+                <label for="title">Title <span class="required">*</span></label>
+                <input type="text" id="title" name="title" value="{{ book['title'] if book else '' }}" required>
+            </div>
+            <div class="col form-group">
+                <label for="author">Author <span class="required">*</span></label>
+                <input type="text" id="author" name="author" value="{{ book['author'] if book else '' }}" required>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col form-group">
+                <label for="series_title">Series Name</label>
+                <input type="text" id="series_title" name="series_title" value="{{ book['series_title'] if book and book['series_title'] else '' }}">
+            </div>
+            <div class="col form-group">
+                <label for="series_number">Series #</label>
+                <input type="number" step="0.1" id="series_number" name="series_number" value="{{ book['series_number'] if book and book['series_number'] else '' }}">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col form-group">
+                <label for="published_year">Year</label>
+                <input type="number" id="published_year" name="published_year" value="{{ book['published_year'] if book and book['published_year'] else '' }}">
+            </div>
+            <div class="col form-group">
+                <label for="publisher">Publisher</label>
+                <input type="text" id="publisher" name="publisher" value="{{ book['publisher'] if book and book['publisher'] else '' }}">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col form-group">
+                <label for="binding">Format</label>
+                <select id="binding" name="binding">
+                    <option value="Paperback" {% if book and book['binding'] == 'Paperback' %}selected{% endif %}>Paperback</option>
+                    <option value="Hardcover" {% if book and book['binding'] == 'Hardcover' %}selected{% endif %}>Hardcover</option>
+                    <option value="Mass Market Paperback" {% if book and book['binding'] == 'Mass Market Paperback' %}selected{% endif %}>Mass Market Paperback</option>
+                    <option value="eBook" {% if book and book['binding'] == 'eBook' %}selected{% endif %}>eBook</option>
+                    <option value="Other" {% if book and book['binding'] == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div class="col form-group">
+                <label for="page_count">Pages</label>
+                <input type="number" id="page_count" name="page_count" value="{{ book['page_count'] if book and book['page_count'] else '' }}">
+            </div>
+        </div>
+    
+        <!-- STATUS AND SIGNED -->
+        <div class="row" style="background-color: #252525; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            <div class="col form-group" style="margin-bottom: 0;">
+                <label for="read_status">Reading Status</label>
+                <select id="read_status" name="read_status">
+                    <option value="" {% if not book or not book['read_status'] %}selected{% endif %}>Owned / No Status</option>
+                    <option value="To Read" {% if book and book['read_status'] == 'To Read' %}selected{% endif %}>To Read (TBR)</option>
+                    <option value="Read" {% if book and book['read_status'] == 'Read' %}selected{% endif %}>Read</option>
+                    <option value="DNF" {% if book and book['read_status'] == 'DNF' %}selected{% endif %}>DNF (Did Not Finish)</option>
+                    <option value="Reference" {% if book and book['read_status'] == 'Reference' %}selected{% endif %}>Reference</option>
+                </select>
+                
+                <div style="margin-top: 8px; display: flex; align-items: center;">
+                    <input type="checkbox" id="sync_status" name="sync_status" checked style="width: auto; margin-right: 8px; transform: scale(1.1);">
+                    <label for="sync_status" style="margin: 0; font-size: 0.8rem; color: var(--text-secondary); font-weight: normal;">
+                        Apply status to all copies
+                    </label>
+                </div>
+            </div>
+
+            <div class="col form-group" style="margin-bottom: 0;">
+                <label>&nbsp;</label>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="is_signed" name="is_signed" {% if book and book['is_signed'] == 1 %}checked{% endif %}>
+                    <label for="is_signed" style="display:inline; margin:0; font-weight: normal; cursor: pointer;">Signed Copy / Special</label>
+                </div>
+            </div>
+        </div>
+
+        <label style="margin-top: 10px;">Physical Dimensions</label>
+        <div class="row">
+            <div class="col form-group"><input type="number" step="0.1" name="height" placeholder="Height (mm)" value="{{ book['height'] if book and book['height'] else '' }}"></div>
+            <div class="col form-group"><input type="number" step="0.1" name="width" placeholder="Width (mm)" value="{{ book['width'] if book and book['width'] else '' }}"></div>
+            <div class="col form-group"><input type="number" step="0.1" name="weight" placeholder="Weight (g)" value="{{ book['weight'] if book and book['weight'] else '' }}"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="cover_url">Cover Image URL</label>
+            <input type="text" id="cover_url" name="cover_url" value="{{ book['cover_url'] if book and book['cover_url'] else '' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" rows="3">{{ book['notes'] if book and book['notes'] else '' }}</textarea>
+        </div>
+
+        <button type="submit" style="width: 100%; margin-top: 10px;">
+            {% if book %}Save Changes{% else %}Save to Library{% endif %}
+        </button>
+    </form>
+
+        
+    <script>
+        document.getElementById('fetch-btn').addEventListener('click', function() {
+            const isbn = document.getElementById('isbn').value;
+            const statusDiv = document.getElementById('api-status');
+
+            if (!isbn) {
+                statusDiv.textContent = "Please enter an ISBN first.";
+                statusDiv.className = "status-error";
+                return;
+            }
+
+            statusDiv.textContent = "Searching Open Library...";
+            statusDiv.className = "";
+
+            fetch('/api/lookup', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({isbn: isbn})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.found) {
+                    statusDiv.textContent = "✓ Found! Data populated.";
+                    statusDiv.className = "status-success";
+                    
+                    document.getElementById('title').value = data.title || '';
+                    document.getElementById('author').value = data.author || '';
+                    document.getElementById('published_year').value = data.published_year || '';
+                    document.getElementById('page_count').value = data.page_count || '';
+                    document.getElementById('publisher').value = data.publisher || '';
+                    document.getElementById('cover_url').value = data.cover_url || '';
+
+                    // NEW: Smart Status
+                    if (data.suggested_status) {
+                        document.getElementById('read_status').value = data.suggested_status;
+                        statusDiv.textContent += " (Status matched from existing copy!)";
+                    }
+                } else {
+                    statusDiv.textContent = "Book not found. Please enter details manually.";
+                    statusDiv.className = "status-error";
+                }
+            })
+            .catch(err => {
+                statusDiv.textContent = "Error connecting to API.";
+                statusDiv.className = "status-error";
+            });
+        });
+    </script>
+
+  
+</body>
+</html>

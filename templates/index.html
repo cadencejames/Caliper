@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booksite Library</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            /* Forest Green Theme */
+            --accent-color: #4e9f3d; 
+            --border-color: #333333;
+            --hover-color: #2c2c2c;
+            --input-bg: #252525;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 30px;
+            line-height: 1.6;
+        }
+
+        /* Header Area */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            margin: 0;
+        }
+
+        .stats {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Table Styling */
+        .table-container {
+            overflow-x: auto;
+            background-color: var(--surface-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #252525;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        tr:hover {
+            background-color: var(--hover-color);
+        }
+        .sort-select {
+            background-color: var(--surface-color);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        .sort-select:focus { outline: none; border-color: var(--accent-color); }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+        }
+        /* --- Column Specifics --- */
+        /* Title Column */
+        .col-title a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            display: block;
+        }
+        .col-title a:hover { color: var(--accent-color); }
+        
+        .series-info {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: normal;
+            margin-top: 4px;
+        }
+
+        /* Format Badge */
+        .format-badge {
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            color: var(--text-secondary);
+            padding: 4px 8px;
+            border-radius: 12px; /* Pill shape */
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        /* Year Column */
+        .col-year { 
+            color: var(--text-secondary); 
+            font-variant-numeric: tabular-nums; 
+            width: 80px;
+        }
+        /* --- MOBILE RESPONSIVE DESIGN --- */
+        @media (max-width: 768px) {
+            
+            /* 1. Global Layout Fixes */
+            body {
+                padding: 15px; /* Reclaim screen space (down from 30px) */
+                overflow-x: hidden; /* Prevent accidental horizontal scroll */
+            }
+
+            /* 2. Stack the Header Elements */
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            /* 3. Stack the Controls (Search, Sort, Add) */
+            .header-actions {
+                width: 100%;
+                display: flex;
+                flex-direction: column; /* Stack top-to-bottom */
+                gap: 10px;
+            }
+
+            /* Make inputs big and tap-friendly */
+            #searchInput {
+                width: 100%;
+                margin-right: 0;
+                box-sizing: border-box; /* Ensures padding doesn't break width */
+                font-size: 16px; /* Prevents zooming on iPhone */
+                padding: 12px;
+            }
+
+            .sort-select {
+                width: 100%;
+                margin-right: 0;
+                box-sizing: border-box;
+                font-size: 16px;
+                padding: 12px;
+                margin-bottom: 5px;
+            }
+
+            /* Buttons: Full Width */
+            .header-actions a {
+                display: block;
+                text-align: center;
+                width: 100%;
+                box-sizing: border-box;
+                padding: 12px;
+            }
+
+            /* 4. CARD VIEW (The Table Transformation) */
+            table, thead, tbody, th, td, tr { display: block; }
+            thead { display: none; } /* Hide desktop headers */
+
+            /* Critical for Rounded Corners */
+            table { 
+                min-width: 0 !important; /* Allow it to shrink */
+                width: 100%; 
+                border-collapse: separate; 
+                border-spacing: 0; 
+                box-sizing: border-box; /* Ensure padding doesn't expand width */
+            }
+
+            /* Reset Container */
+            .table-container {
+                background-color: transparent;
+                border: none;
+                box-shadow: none;
+                padding: 0;
+                overflow: visible;
+            }
+
+            /* The Card */
+            tr {
+                width: 100%;
+                box-sizing: border-box;
+                background-color: var(--surface-color);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                margin-bottom: 20px;
+                padding: 20px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+                overflow: hidden; /* Clips corners */
+            }
+
+            /* The Content */
+            td { 
+                border: none;
+                background-color: transparent !important;
+                padding: 4px 0;
+            }
+
+            /* Typography Tweaks for Mobile */
+            .col-title a { font-size: 1.3rem; margin-bottom: 5px; display: block; }
+            .series-info { 
+                display: block;       /* Forces a new line */
+                margin-top: 4px;      /* Space between Title and Series */
+                margin-bottom: 10px; 
+                color: var(--text-secondary); /* Make it subtle */
+                font-size: 0.75rem; 
+            }
+            td:nth-of-type(2) { font-size: 1.1rem; margin-bottom: 12px; color: var(--text-primary); } /* Author */
+            
+            /* Footer Area of Card */
+            .col-year { 
+                display: block; 
+                margin-top: 10px;
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+            }
+            .col-year::before { content: "Published: "; opacity: 0.7; }
+            
+            td:last-child {
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Personal Library</h1>
+        <div class="stats">Library Count: <strong>{{ total_count }}</strong></div>
+        <div class="header-actions">
+            <!-- SEARCH BAR -->
+            <input type="text" id="searchInput" placeholder="Search library..." onkeyup="filterTable()" style="
+                padding: 8px 12px;
+                border-radius: 4px;
+                border: 1px solid var(--border-color);
+                background-color: var(--input-bg);
+                color: var(--text-primary);
+                width: 200px;
+                margin-right: 15px;
+            ">
+            <!-- FILTER DROPDOWN -->
+            <select class="sort-select" id="filterSelect" onchange="updateParams()">
+                <option value="all" {% if current_filter == 'all' %}selected{% endif %}>Filter: Show All</option>
+                <option value="read" {% if current_filter == 'read' %}selected{% endif %}>Status: Read</option>
+                <option value="tbr" {% if current_filter == 'tbr' %}selected{% endif %}>Status: To Read</option>
+                <option value="dnf" {% if current_filter == 'dnf' %}selected{% endif %}>Status: DNF</option>
+                <option value="signed" {% if current_filter == 'signed' %}selected{% endif %}>Show Signed Only</option>
+            </select>
+
+            <!-- SORT DROPDOWN -->
+            <select class="sort-select" id="sortSelect" onchange="updateParams()">
+                <option value="author" {% if current_sort == 'author' %}selected{% endif %}>Author (A-Z)</option>
+                <option value="title" {% if current_sort == 'title' %}selected{% endif %}>Title (A-Z)</option>
+                <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Date Added (Newest)</option>
+                <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Date Added (Oldest)</option>
+                <option value="year_desc" {% if current_sort == 'year_desc' %}selected{% endif %}>Year (Newest)</option>
+                <option value="year_asc" {% if current_sort == 'year_asc' %}selected{% endif %}>Year (Oldest)</option>
+            </select>
+            {% if not is_read_only %}
+                <!-- AUDIT BUTTON -->
+                <a href="/audit" style="
+                    background-color: #333;
+                    color: var(--text-secondary);
+                    text-decoration: none;
+                    padding: 10px 15px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    font-size: 0.9rem;
+                    margin-right: 10px;
+                    border: 1px solid var(--border-color);
+                ">⚠️ Audit</a>
+                <!-- ADD BUTTON -->
+                <a href="/add" style="
+                    background-color: var(--accent-color);
+                    color: white;
+                    text-decoration: none;
+                    padding: 10px 15px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    font-size: 0.9rem;
+                ">+ Add Book</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 50%;">Title / Series</th>
+                    <th style="width: 25%;">Author</th>
+                    <th>Year</th>
+                    <th style="text-align: right;">Formats</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in books %}
+                <tr>
+                    <td class="col-title">
+                        <a href="/book/{{ book['id'] }}">
+                            {{ book['title'] }}
+                            
+                            <!-- COPY COUNT BADGE -->
+                            {% if book['copy_count'] > 1 %}
+                                <span style="
+                                    background-color: #333; 
+                                    color: var(--accent-color); 
+                                    font-size: 0.7rem; 
+                                    padding: 2px 6px; 
+                                    border-radius: 4px; 
+                                    border: 1px solid var(--accent-color);
+                                    margin-left: 8px;
+                                    vertical-align: middle;
+                                ">{{ book['copy_count'] }} Copies</span>
+                            {% endif %}
+
+                            {% if book['series_title'] %}
+                                <span class="series-info">
+                                    {{ book['series_title'] }} 
+                                    {% if book['series_number'] %} #{{ book['series_number'] }}{% endif %}
+                                </span>
+                            {% endif %}
+                        </a>
+                    </td>
+                    <td>{{ book['author'] }}</td>
+                    <td class="col-year">{{ book['published_year'] if book['published_year'] else '-' }}</td>
+                    <td style="text-align: right;">
+                        <!-- Display the unique list of formats we created in Python -->
+                        <span class="format-badge">{{ book['display_formats'] }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script>
+        // 1. Handle Dropdowns (Sort/Filter)
+        function updateParams() {
+            const filterVal = document.getElementById('filterSelect').value;
+            const sortVal = document.getElementById('sortSelect').value;
+            
+            // CLEAR scroll position when changing sort/filter
+            sessionStorage.removeItem('scrollPos');
+            sessionStorage.removeItem('scrollParams');
+            
+            window.location.href = `/?filter=${filterVal}&sort=${sortVal}`;
+        }
+
+        // 2. Scroll Persistence Logic
+        document.addEventListener("DOMContentLoaded", function() {
+            // Uniquely identify the current view based on sort/filter params
+            // We use the full query string (e.g. "?sort=author&filter=all") as the key
+            const currentParams = window.location.search;
+
+            // A. RESTORE SCROLL
+            const savedParams = sessionStorage.getItem('scrollParams');
+            const savedPos = sessionStorage.getItem('scrollPos');
+
+            // Only restore if we are on the EXACT same view (same sort/filter)
+            if (savedParams === currentParams && savedPos) {
+                // Determine if we are on mobile (table is hidden) or desktop
+                // If the user resized the window, the scroll pos might be inaccurate, 
+                // but usually it's close enough.
+                window.scrollTo(0, parseInt(savedPos));
+            }
+
+            // B. SAVE SCROLL ON CLICK
+            // Find all links that point to a book detail page
+            const bookLinks = document.querySelectorAll('a[href^="/book/"]');
+            
+            bookLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    // Save the current scroll Y position
+                    sessionStorage.setItem('scrollPos', window.scrollY);
+                    // Save the current params so we verify match later
+                    sessionStorage.setItem('scrollParams', currentParams);
+                });
+            });
+        });
+        // 3. Instant Search Logic
+        function filterTable() {
+            // Get the user's search text
+            const input = document.getElementById("searchInput");
+            const filter = input.value.toUpperCase();
+            
+            // Get the table and rows
+            const table = document.querySelector("table");
+            const tr = table.getElementsByTagName("tr");
+
+            // Loop through all table rows (start at 1 to skip header)
+            for (let i = 1; i < tr.length; i++) {
+                // Get the text content of the entire row
+                // (Title, Author, Year, Format, Series - everything is searchable)
+                const rowText = tr[i].textContent || tr[i].innerText;
+                
+                if (rowText.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = ""; // Show
+                } else {
+                    tr[i].style.display = "none"; // Hide
+                }
+            }
+        }
+    </script>
+</body>
+</html>
