@@ -44,7 +44,7 @@ Built with **Python (Flask)**, **SQLite**, and **Docker**.
 
 ### 1. Clone and Setup
 ```
-git clone https://github.com/ignorantforager/caliper.git
+git clone https://github.com/cadencejames/caliper.git
 cd caliper
 
 # Create virtual environment (Optional but recommended)
