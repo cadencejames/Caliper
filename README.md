@@ -1,4 +1,10 @@
 # Caliper: The Physical Library Manager
+![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)
+![Flask](https://img.shields.io/badge/framework-Flask-lightgrey)
+![Docker](https://img.shields.io/badge/container-Docker-2496ED)
+![License](https://img.shields.io/github/license/cadencejames/Caliper)
+![Last Commit](https://img.shields.io/github/last-commit/cadencejames/Caliper)
+![Contributors](https://img.shields.io/github/contributors/cadencejames/Caliper)
 
 Caliper is a self-hosted, mobile-responsive web application designed for book collectors who care about physical editions. Unlike standard trackers (Goodreads/StoryGraph), Caliper focuses on inventory management: precise dimensions, weights, binding types, and series consistency.
 
