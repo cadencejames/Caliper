@@ -2,7 +2,7 @@
 ![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)
 ![Flask](https://img.shields.io/badge/framework-Flask-lightgrey)
 ![Docker](https://img.shields.io/badge/container-Docker-2496ED)
-![License](https://img.shields.io/github/license/cadencejames/Caliper)
+![License](https://img.shields.io/github/license/cadencejames/caliper)
 ![Last Commit](https://img.shields.io/github/last-commit/cadencejames/Caliper)
 ![Contributors](https://img.shields.io/github/contributors/cadencejames/Caliper)
 
