@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- The Container (Rounded Square) -->
+  <rect x="0" y="0" width="64" height="64" rx="14" fill="#1e1e1e" />
+  
+  <!-- The Content (Scaled down to fit inside) -->
+  <g transform="translate(8, 8) scale(0.75)">
+      <!-- Tall Book (Left, Dark) -->
+      <rect x="10" y="12" width="12" height="40" rx="2" fill="#1b3320" />
+      
+      <!-- Short Book (Middle, Light/Page color) -->
+      <rect x="24" y="20" width="10" height="32" rx="2" fill="#e0e0e0" />
+      <rect x="26" y="22" width="6" height="28" fill="#FFFFFF" opacity="0.5" />
+      
+      <!-- Medium Book (Right, Main Green) -->
+      <rect x="36" y="16" width="14" height="36" rx="2" fill="#4e9f3d" />
+      
+      <!-- Spine details on the main book -->
+      <rect x="40" y="20" width="6" height="2" rx="1" fill="#1b3320" opacity="0.3" />
+      <rect x="40" y="24" width="6" height="2" rx="1" fill="#1b3320" opacity="0.3" />
+      
+      <!-- The Shelf Line -->
+      <rect x="6" y="54" width="52" height="4" rx="2" fill="#333333" />
+  </g>
+</svg>
