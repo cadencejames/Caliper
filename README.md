@@ -116,7 +116,11 @@ For books that pre-date ISBNs or are limited editions:
 
 ## 🛣️ Roadmap & Versioning
 
-**Current Version:** v1.0.0 (Phase 1 Complete)
+**Current Version:** v1.0.1
+
+### Changelog
+**v1.0.1** - Audit page now includes books missing weight data.  
+**v1.0.0** - Initial Release (Phase 1 Completed)
 
 ### Phase 1: Core & Infrastructure (Completed)
 - [x] Database normalization and CSV import logic
