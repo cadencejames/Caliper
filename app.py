@@ -10,7 +10,7 @@ app = Flask(__name__)
 # Default to 'ADMIN' if not specified (for local dev safety)
 APP_MODE = os.environ.get('APP_MODE', 'ADMIN').upper()
 IS_READ_ONLY = (APP_MODE == 'PUBLIC')
-# Test Git Push
+
 # This 'context processor' makes the 'is_read_only' variable 
 # available to EVERY HTML template automatically.
 @app.context_processor
