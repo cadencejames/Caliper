@@ -8,6 +8,7 @@ app = Flask(__name__)
 
 # Determine if we are in Admin Mode or Public Read-Only Mode
 # Default to 'ADMIN' if not specified (for local dev safety)
+# Test upload
 APP_MODE = os.environ.get('APP_MODE', 'ADMIN').upper()
 IS_READ_ONLY = (APP_MODE == 'PUBLIC')
 
