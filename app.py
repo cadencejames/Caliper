@@ -8,7 +8,6 @@ app = Flask(__name__)
 
 # Determine if we are in Admin Mode or Public Read-Only Mode
 # Default to 'ADMIN' if not specified (for local dev safety)
-# Test upload
 APP_MODE = os.environ.get('APP_MODE', 'ADMIN').upper()
 IS_READ_ONLY = (APP_MODE == 'PUBLIC')
 
@@ -371,6 +370,7 @@ if not IS_READ_ONLY:
             SELECT * FROM books 
             WHERE (height IS NULL OR height = 0) 
             OR (width IS NULL OR width = 0) 
+            OR (weight IS NULL OR weight = 0)
             ORDER BY author ASC, series_title ASC, series_number ASC, title ASC
         ''').fetchall()
         
