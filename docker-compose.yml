@@ -11,6 +11,7 @@ services:
       - APP_MODE=ADMIN
     volumes:
       - ./data:/app/data
+      - ./static/covers:/app/static/covers
 
   caliper-public:
     image: caliper-app
@@ -22,3 +23,4 @@ services:
       - APP_MODE=PUBLIC
     volumes:
       - ./data:/app/data
+      - ./static/covers:/app/static/covers

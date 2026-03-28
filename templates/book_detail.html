@@ -238,8 +238,8 @@
 
         <!-- Left: Cover -->
         <div class="cover-area">
-            {% if book['cover_url'] %}
-                <img src="{{ book['cover_url'] }}" alt="Cover for {{ book['title'] }}" class="cover-img">
+            {% if book['resolved_cover'] %}
+                <img src="{{ book['resolved_cover'] }}" alt="Cover for {{ book['title'] }}" class="cover-img">
             {% else %}
                 <div class="placeholder-cover">
                     <div class="placeholder-title">{{ book['title'] }}</div>

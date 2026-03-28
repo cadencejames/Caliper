@@ -116,11 +116,12 @@ For books that pre-date ISBNs or are limited editions:
 
 ## 🛣️ Roadmap & Versioning
 
-**Current Version:** v1.1.0
+**Current Version:** v1.2.0
 
 ### Changelog
-**v1.1.0** - Full visual refresh of all templates.  
-**v1.0.1** - Audit page now includes books missing weight data.  
+**v1.2.0** - Local cover image support via static/covers volume mount.
+**v1.1.0** - Full visual refresh of all templates.
+**v1.0.1** - Audit page now includes books missing weight data.
 **v1.0.0** - Initial Release (Phase 1 Completed)
 
 ### Phase 1: Core & Infrastructure (Completed)

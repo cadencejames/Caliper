@@ -134,6 +134,17 @@ def book_detail(book_id):
     ''', (book['title'], book['author'], book_id)).fetchall()
 
     conn.close()
+
+    book = dict(book)
+    cover_filename = book.get('cover_filename')
+    local_cover_path = os.path.join(app.static_folder, 'covers', cover_filename) if cover_filename else None
+    if cover_filename and os.path.exists(local_cover_path):
+        book['resolved_cover'] = '/static/covers/' + cover_filename
+    elif book.get('cover_url'):
+        book['resolved_cover'] = book['cover_url']
+    else:
+        book['resolved_cover'] = None
+
     return render_template('book_detail.html', book=book, siblings=siblings)
 
 if not IS_READ_ONLY:
