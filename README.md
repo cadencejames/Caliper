@@ -6,7 +6,7 @@
 ![Last Commit](https://img.shields.io/github/last-commit/cadencejames/Caliper)
 ![Contributors](https://img.shields.io/github/contributors/cadencejames/Caliper)
 
-Caliper is a self-hosted, mobile-responsive web application designed for book collectors who care about physical editions. Unlike standard trackers (Goodreads/StoryGraph), Caliper focuses on inventory management: precise dimensions, weights, binding types, and series consistency.
+Caliper is a self-hosted, mobile-responsive web application designed for book collectors who care about **physical editions**. Unlike ebook managers (Calibre) or reading trackers (Goodreads/StoryGraph), Caliper focuses on inventory management of your physical shelf: precise dimensions, weights, binding types, and series consistency.
 
 Built with **Python (Flask)**, **SQLite**, and **Docker**.
 
