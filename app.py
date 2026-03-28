@@ -181,18 +181,19 @@ if not IS_READ_ONLY:
                 'width': clean_num(request.form.get('width'), float),
                 'weight': clean_num(request.form.get('weight'), float),
                 'notes': request.form.get('notes'),
-                'cover_url': request.form.get('cover_url')
+                'cover_url': request.form.get('cover_url'),
+                'cover_filename': request.form.get('cover_filename') or None
             }
 
             conn = get_db_connection()
             cur = conn.cursor()
             cur.execute('''
                 INSERT INTO books (title, author, isbn, publisher, binding, read_status, is_signed,
-                                page_count, published_year, series_title, series_number, 
-                                height, width, weight, notes, cover_url)
+                                page_count, published_year, series_title, series_number,
+                                height, width, weight, notes, cover_url, cover_filename)
                 VALUES (:title, :author, :isbn, :publisher, :binding, :read_status, :is_signed,
-                        :page_count, :published_year, :series_title, :series_number, 
-                        :height, :width, :weight, :notes, :cover_url)
+                        :page_count, :published_year, :series_title, :series_number,
+                        :height, :width, :weight, :notes, :cover_url, :cover_filename)
             ''', book_data)
             new_id = cur.lastrowid
 
@@ -256,6 +257,7 @@ if not IS_READ_ONLY:
                 'weight': clean_num(request.form.get('weight'), float),
                 'notes': request.form.get('notes'),
                 'cover_url': request.form.get('cover_url'),
+                'cover_filename': request.form.get('cover_filename') or None,
                 'id': book_id
             }
 
@@ -265,7 +267,8 @@ if not IS_READ_ONLY:
                     is_signed = :is_signed, page_count = :page_count,
                     published_year = :published_year, series_title = :series_title,
                     series_number = :series_number, height = :height, width = :width,
-                    weight = :weight, notes = :notes, cover_url = :cover_url
+                    weight = :weight, notes = :notes, cover_url = :cover_url,
+                    cover_filename = :cover_filename
                 WHERE id = :id
             ''', book_data)
 

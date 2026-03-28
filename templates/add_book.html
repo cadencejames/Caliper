@@ -325,9 +325,15 @@
                         <input type="number" step="0.1" name="weight" placeholder="e.g. 245" value="{{ book['weight'] if book and book['weight'] else '' }}">
                     </div>
                 </div>
-                <div class="form-group" style="margin-top:12px">
-                    <label>Cover Image URL</label>
-                    <input type="text" id="cover_url" name="cover_url" value="{{ book['cover_url'] if book and book['cover_url'] else '' }}">
+                <div class="form-row" style="margin-top:12px">
+                    <div class="form-group">
+                        <label>Cover Image URL</label>
+                        <input type="text" id="cover_url" name="cover_url" value="{{ book['cover_url'] if book and book['cover_url'] else '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Local Cover Filename</label>
+                        <input type="text" id="cover_filename" name="cover_filename" placeholder="e.g. 9780441172719.jpg" value="{{ book['cover_filename'] if book and book['cover_filename'] else '' }}">
+                    </div>
                 </div>
             </div>
         </div>
@@ -351,6 +357,16 @@
     </form>
 
     <script>
+        {% if not book %}
+        document.getElementById('isbn').addEventListener('blur', function() {
+            const isbn = this.value.trim();
+            const filenameField = document.getElementById('cover_filename');
+            if (isbn && !filenameField.value) {
+                filenameField.value = isbn + '.jpg';
+            }
+        });
+        {% endif %}
+
         document.getElementById('fetch-btn').addEventListener('click', function() {
             const isbn = document.getElementById('isbn').value;
             const statusDiv = document.getElementById('api-status');
@@ -377,6 +393,12 @@
                     document.getElementById('page_count').value = data.page_count || '';
                     document.getElementById('publisher').value = data.publisher || '';
                     document.getElementById('cover_url').value = data.cover_url || '';
+                    {% if not book %}
+                    const filenameField = document.getElementById('cover_filename');
+                    if (isbn && !filenameField.value) {
+                        filenameField.value = isbn.trim() + '.jpg';
+                    }
+                    {% endif %}
                     if (data.suggested_status) {
                         document.getElementById('read_status').value = data.suggested_status;
                         statusDiv.textContent += " (Status matched from existing copy!)";
