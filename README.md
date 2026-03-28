@@ -119,9 +119,9 @@ For books that pre-date ISBNs or are limited editions:
 **Current Version:** v1.2.0
 
 ### Changelog
-**v1.2.0** - Local cover image support via static/covers volume mount.
-**v1.1.0** - Full visual refresh of all templates.
-**v1.0.1** - Audit page now includes books missing weight data.
+**v1.2.0** - Local cover image support via static/covers volume mount.  
+**v1.1.0** - Full visual refresh of all templates.  
+**v1.0.1** - Audit page now includes books missing weight data.  
 **v1.0.0** - Initial Release (Phase 1 Completed)
 
 ### Phase 1: Core & Infrastructure (Completed)
@@ -143,6 +143,18 @@ For books that pre-date ISBNs or are limited editions:
 - [ ] **Barcode Scanning:** Native camera integration to add books by scanning physical barcodes.
 - [ ] **Advanced API Fallbacks:** Fallback to Google Books API if Open Library data is missing.
 - [ ] **Tagging System:** Custom user-defined tags for custom collections.
+
+---
+
+## 🖼️ Local Cover Images
+
+Caliper supports locally hosted cover images as the primary cover source, falling back to the Open Library API, then a CSS placeholder if neither is available.
+
+1. Place cover images in the `static/covers/` folder, named `<isbn>.jpg` (e.g. `9780441172719.jpg`).
+2. Set the `cover_filename` column in the database to the filename for that book.
+3. If the file exists on disk, it will be used. If not, the Open Library cover URL is used instead.
+
+When deploying with Docker, the `static/covers/` directory is mounted as a volume so covers persist across container rebuilds.
 
 ---
 
