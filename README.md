@@ -116,7 +116,7 @@ For books that pre-date ISBNs or are limited editions:
 
 ## 🛣️ Roadmap & Versioning
 
-**Current Version:** v1.2.0
+**Current Version:** v1.2.1
 
 ### Changelog
 **v1.2.1** - Add cover_filename field on Add and Edit forms in the Admin view.    
