@@ -119,6 +119,7 @@ For books that pre-date ISBNs or are limited editions:
 **Current Version:** v1.2.0
 
 ### Changelog
+**v1.2.1** - Add cover_filename field on Add and Edit forms in the Admin view.    
 **v1.2.0** - Local cover image support via static/covers volume mount.  
 **v1.1.0** - Full visual refresh of all templates.  
 **v1.0.1** - Audit page now includes books missing weight data.  
