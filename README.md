@@ -41,6 +41,9 @@ Built with **Python (Flask)**, **SQLite**, and **Docker**.
     │   ├── book_detail.html    # Single book view
     │   ├── add_book.html       # Add & Edit form
     │   └── audit.html          # Data hygiene dashboard
+    ├── static/                 # Static assets
+    │   ├── favicon.svg         # Site favicon
+    │   └── covers/             # Locally hosted cover images
     └── data/                   # Database storage
         └── books.db            # Books Database
 
