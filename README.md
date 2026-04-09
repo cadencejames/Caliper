@@ -125,16 +125,11 @@ For books that pre-date ISBNs or are limited editions:
 
 ### Changelog
 
-**v1.3.0** - Advanced Search page (`/search`) with field/operator/value query builder across all books. Available in both Admin and Public modes. Also adds dynamic filter to the Physical Audit tab.
-
-**v1.2.1** - Add cover_filename field on Add and Edit forms in the Admin view.
-
-**v1.2.0** - Local cover image support via static/covers volume mount.
-
-**v1.1.0** - Full visual refresh of all templates.
-
-**v1.0.1** - Audit page now includes books missing weight data.
-
+**v1.3.0** - Advanced Search page (`/search`) with field/operator/value query builder across all books. Available in both Admin and Public modes. Also adds dynamic filter to the Physical Audit tab.  
+**v1.2.1** - Add cover_filename field on Add and Edit forms in the Admin view.  
+**v1.2.0** - Local cover image support via static/covers volume mount.  
+**v1.1.0** - Full visual refresh of all templates.  
+**v1.0.1** - Audit page now includes books missing weight data.  
 **v1.0.0** - Initial Release (Phase 1 Completed)
 
 ### Phase 1: Core & Infrastructure (Completed)
