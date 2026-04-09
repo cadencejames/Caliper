@@ -230,6 +230,81 @@
             font-size: 11px;
         }
 
+        /* ── Filter Bar ── */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            padding: 10px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .filter-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-right: 4px;
+        }
+
+        .filter-select, .filter-input {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .filter-select:focus, .filter-input:focus { border-color: var(--teal); background: #1e2232; }
+        .filter-select { cursor: pointer; }
+
+        .filter-input { width: 140px; }
+        .filter-input::placeholder { color: var(--text-dim); }
+
+        .btn-filter-apply {
+            background: var(--teal-bg);
+            color: var(--teal);
+            border: 1px solid var(--teal-border);
+            padding: 5px 14px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-filter-apply:hover { background: #0d1f18; }
+
+        .btn-filter-clear {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+        .btn-filter-clear:hover { color: var(--text-secondary); border-color: var(--gray); }
+
+        .filter-active-badge {
+            font-size: 9px;
+            background: var(--teal-bg);
+            border: 1px solid var(--teal-border);
+            color: var(--teal);
+            padding: 1px 7px;
+            border-radius: 3px;
+            margin-left: auto;
+        }
+
         /* ── Mobile ── */
         @media (max-width: 700px) {
             body { padding: 14px; max-width: 100%; overflow-x: hidden; }
@@ -284,6 +359,40 @@
 
     <!-- SECTION 1: PHYSICAL AUDIT -->
     <div id="dims-section" class="section active">
+
+        <!-- Dynamic filter bar -->
+        <form method="GET" action="/audit" class="filter-bar">
+            <span class="filter-label">Filter</span>
+            <select name="field" id="filter-field" class="filter-select">
+                <option value="height"  {% if filter_field == 'height'  %}selected{% endif %}>Height</option>
+                <option value="width"   {% if filter_field == 'width'   %}selected{% endif %}>Width</option>
+                <option value="weight"  {% if filter_field == 'weight'  %}selected{% endif %}>Weight</option>
+                <option value="title"   {% if filter_field == 'title'   %}selected{% endif %}>Title</option>
+                <option value="author"  {% if filter_field == 'author'  %}selected{% endif %}>Author</option>
+                <option value="binding" {% if filter_field == 'binding' %}selected{% endif %}>Binding</option>
+            </select>
+            <select name="operator" id="filter-operator" class="filter-select" onchange="toggleValueInput()">
+                <option value="equals"      {% if filter_operator == 'equals'      %}selected{% endif %}>equals</option>
+                <option value="not_equals"  {% if filter_operator == 'not_equals'  %}selected{% endif %}>not equals</option>
+                <option value="less_than"   {% if filter_operator == 'less_than'   %}selected{% endif %}>less than</option>
+                <option value="greater_than"{% if filter_operator == 'greater_than'%}selected{% endif %}>greater than</option>
+                <option value="lte"         {% if filter_operator == 'lte'         %}selected{% endif %}>≤</option>
+                <option value="gte"         {% if filter_operator == 'gte'         %}selected{% endif %}>≥</option>
+                <option value="starts_with" {% if filter_operator == 'starts_with' %}selected{% endif %}>starts with</option>
+                <option value="contains"    {% if filter_operator == 'contains'    %}selected{% endif %}>contains</option>
+                <option value="is_null"     {% if filter_operator == 'is_null'     %}selected{% endif %}>is null</option>
+                <option value="is_not_null" {% if filter_operator == 'is_not_null' %}selected{% endif %}>is not null</option>
+            </select>
+            <input type="text" name="value" id="filter-value" class="filter-input"
+                   value="{{ filter_value }}" placeholder="value"
+                   {% if filter_operator in ('is_null', 'is_not_null') %}style="display:none"{% endif %}>
+            <button type="submit" class="btn-filter-apply">Apply</button>
+            <a href="/audit" class="btn-filter-clear">Clear</a>
+            {% if filter_field and filter_operator %}
+            <span class="filter-active-badge">Filter active</span>
+            {% endif %}
+        </form>
+
         <div class="card">
             <div class="card-header">
                 <div class="dot dot-gray"></div>
@@ -376,6 +485,14 @@
     </div>
 
     <script>
+        function toggleValueInput() {
+            const op = document.getElementById('filter-operator').value;
+            const valInput = document.getElementById('filter-value');
+            const noVal = op === 'is_null' || op === 'is_not_null';
+            valInput.style.display = noVal ? 'none' : '';
+            if (noVal) valInput.value = '';
+        }
+
         function switchTab(tabName, el) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));

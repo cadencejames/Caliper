@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <title>Search — Caliper</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #161820;
+            --surface-alt: #1e2030;
+            --border: #2a2c35;
+            --border-dim: #1a1c24;
+            --text-primary: #c8c6be;
+            --text-secondary: #8a887e;
+            --text-muted: #6b6960;
+            --text-dim: #5a5c66;
+            --text-bright: #e8e6de;
+            --teal: #1d9e75;
+            --teal-bg: #0a1612;
+            --teal-border: #0f6e56;
+            --blue: #378add;
+            --amber: #ba7517;
+            --amber-bg: #1a1208;
+            --amber-border: #633806;
+            --red: #e24b4a;
+            --gray: #3a3c46;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 12px;
+            padding: 24px;
+            max-width: 1100px;
+        }
+
+        .nav-link {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: block;
+            margin-bottom: 16px;
+        }
+        .nav-link:hover { color: var(--teal); }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 300;
+            color: var(--text-bright);
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        .subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 20px;
+        }
+
+        /* ── Filter Bar ── */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .filter-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-right: 4px;
+        }
+
+        .filter-select, .filter-input {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .filter-select:focus, .filter-input:focus { border-color: var(--teal); background: #1e2232; }
+        .filter-select { cursor: pointer; }
+        .filter-input { width: 160px; }
+        .filter-input::placeholder { color: var(--text-dim); }
+
+        .btn-apply {
+            background: var(--teal-bg);
+            color: var(--teal);
+            border: 1px solid var(--teal-border);
+            padding: 5px 14px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-apply:hover { background: #0d1f18; }
+
+        .btn-clear {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+            display: inline-block;
+        }
+        .btn-clear:hover { color: var(--text-secondary); border-color: var(--gray); }
+
+        .filter-active-badge {
+            font-size: 9px;
+            background: var(--teal-bg);
+            border: 1px solid var(--teal-border);
+            color: var(--teal);
+            padding: 1px 7px;
+            border-radius: 3px;
+            margin-left: auto;
+        }
+
+        /* ── Card / Table ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 7px 14px;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            background: var(--surface-alt);
+        }
+
+        .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .dot-teal { background: var(--teal); }
+        .dot-blue { background: var(--blue); }
+
+        .result-count {
+            font-size: 9px;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-left: auto;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            padding: 7px 14px;
+            text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            background: var(--surface-alt);
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+        }
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border-dim);
+            vertical-align: middle;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #1a1c26; }
+
+        .book-title a {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-bright);
+            text-decoration: none;
+        }
+        .book-title a:hover { color: var(--teal); }
+
+        .col-author { color: var(--text-secondary); font-size: 11px; }
+        .col-num { font-size: 11px; color: var(--text-dim); font-variant-numeric: tabular-nums; font-family: monospace; }
+        .col-num.has-value { color: var(--text-primary); }
+        .col-binding {
+            font-size: 9px;
+            padding: 2px 7px;
+            border-radius: 3px;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+        .col-year { color: var(--text-dim); font-size: 11px; font-variant-numeric: tabular-nums; }
+
+        .edit-link {
+            color: var(--teal);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .edit-link:hover { text-decoration: underline; }
+
+        /* Empty / prompt states */
+        .empty-state {
+            padding: 40px 32px;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 11px;
+            line-height: 2;
+        }
+        .empty-state strong { color: var(--text-muted); display: block; font-size: 13px; margin-bottom: 6px; }
+
+        /* ── Mobile ── */
+        @media (max-width: 700px) {
+            body { padding: 14px; max-width: 100%; overflow-x: hidden; }
+            h1 { font-size: 22px; }
+            .filter-bar { gap: 6px; }
+            .filter-input { width: 100%; }
+
+            table, thead, tbody, th, td, tr { display: block; }
+            thead { display: none; }
+            table { min-width: 0 !important; border-collapse: separate; border-spacing: 0; }
+
+            tr {
+                background: var(--surface-alt);
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                margin: 0 0 10px 0;
+                padding: 12px 14px;
+            }
+            td { border: none; padding: 3px 0; background: transparent !important; }
+            td:first-child { margin-bottom: 6px; }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="/" class="nav-link">← Back to Library</a>
+    <h1>Search</h1>
+    <div class="subtitle">Caliper · Advanced Query</div>
+
+    <form method="GET" action="/search" class="filter-bar">
+        <span class="filter-label">Where</span>
+        <select name="field" id="filter-field" class="filter-select">
+            <option value="height"  {% if filter_field == 'height'  %}selected{% endif %}>Height</option>
+            <option value="width"   {% if filter_field == 'width'   %}selected{% endif %}>Width</option>
+            <option value="weight"  {% if filter_field == 'weight'  %}selected{% endif %}>Weight</option>
+            <option value="title"   {% if filter_field == 'title'   %}selected{% endif %}>Title</option>
+            <option value="author"  {% if filter_field == 'author'  %}selected{% endif %}>Author</option>
+            <option value="binding" {% if filter_field == 'binding' %}selected{% endif %}>Binding</option>
+        </select>
+        <select name="operator" id="filter-operator" class="filter-select" onchange="toggleValueInput()">
+            <option value="equals"       {% if filter_operator == 'equals'       %}selected{% endif %}>equals</option>
+            <option value="not_equals"   {% if filter_operator == 'not_equals'   %}selected{% endif %}>not equals</option>
+            <option value="less_than"    {% if filter_operator == 'less_than'    %}selected{% endif %}>less than</option>
+            <option value="greater_than" {% if filter_operator == 'greater_than' %}selected{% endif %}>greater than</option>
+            <option value="lte"          {% if filter_operator == 'lte'          %}selected{% endif %}>≤</option>
+            <option value="gte"          {% if filter_operator == 'gte'          %}selected{% endif %}>≥</option>
+            <option value="starts_with"  {% if filter_operator == 'starts_with'  %}selected{% endif %}>starts with</option>
+            <option value="contains"     {% if filter_operator == 'contains'     %}selected{% endif %}>contains</option>
+            <option value="is_null"      {% if filter_operator == 'is_null'      %}selected{% endif %}>is null</option>
+            <option value="is_not_null"  {% if filter_operator == 'is_not_null'  %}selected{% endif %}>is not null</option>
+        </select>
+        <input type="text" name="value" id="filter-value" class="filter-input"
+               value="{{ filter_value }}" placeholder="value"
+               {% if filter_operator in ('is_null', 'is_not_null') %}style="display:none"{% endif %}>
+        <button type="submit" class="btn-apply">Apply</button>
+        <a href="/search" class="btn-clear">Clear</a>
+        {% if filter_active %}
+        <span class="filter-active-badge">{{ books|length }} result{{ 's' if books|length != 1 else '' }}</span>
+        {% endif %}
+    </form>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="dot dot-teal"></div>
+            Results
+            {% if not filter_active %}
+            <span class="result-count">{{ books|length }} total</span>
+            {% endif %}
+        </div>
+
+        {% if books %}
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:32%">Title</th>
+                    <th style="width:20%">Author</th>
+                    <th>Height</th>
+                    <th>Width</th>
+                    <th>Weight</th>
+                    <th>Binding</th>
+                    <th>Year</th>
+                    {% if not is_read_only %}<th></th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in books %}
+                <tr>
+                    <td class="book-title">
+                        <a href="/book/{{ book.id }}">{{ book.title }}</a>
+                    </td>
+                    <td class="col-author">{{ book.author }}</td>
+                    <td class="col-num {% if book.height and book.height != 0 %}has-value{% endif %}">
+                        {{ book.height if book.height and book.height != 0 else '—' }}
+                    </td>
+                    <td class="col-num {% if book.width and book.width != 0 %}has-value{% endif %}">
+                        {{ book.width if book.width and book.width != 0 else '—' }}
+                    </td>
+                    <td class="col-num {% if book.weight and book.weight != 0 %}has-value{% endif %}">
+                        {{ book.weight if book.weight and book.weight != 0 else '—' }}
+                    </td>
+                    <td>
+                        {% if book.binding %}
+                        <span class="col-binding">{{ book.binding }}</span>
+                        {% else %}
+                        <span class="col-year">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="col-year">{{ book.published_year if book.published_year else '—' }}</td>
+                    {% if not is_read_only %}
+                    <td>
+                        <a href="/book/{{ book.id }}/edit" class="edit-link">Edit →</a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% elif filter_active %}
+        <div class="empty-state">
+            <strong>No results</strong>
+            No books matched that query.
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <strong>Query your collection</strong>
+            Use the filter above to search across all books.
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleValueInput() {
+            const op = document.getElementById('filter-operator').value;
+            const valInput = document.getElementById('filter-value');
+            const noVal = op === 'is_null' || op === 'is_not_null';
+            valInput.style.display = noVal ? 'none' : '';
+            if (noVal) valInput.value = '';
+        }
+    </script>
+</body>
+</html>

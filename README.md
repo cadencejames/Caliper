@@ -18,6 +18,7 @@ Built with **Python (Flask)**, **SQLite**, and **Docker**.
 *   **Series Intelligence:** Automatically groups books by Series and sorts them by internal chronology (e.g., Book 0.5, 1, 2) rather than alphabetical title.
 *   **Metadata Automation:** "Magic Fetch" button uses the Open Library API to auto-fill metadata, covers, and page counts by ISBN.
 *   **Audit Mode:** A dedicated high-speed interface for fixing missing data. Includes an Excel-style inline editor for rapid physical measuring.
+*   **Advanced Search:** Query all books by any field (height, width, weight, title, author, binding) using a flexible field/operator/value filter. Available in both Admin and Public modes.
 *   **Twin-Mode Deployment:**
     *   **Admin Mode:** Full Add/Edit/Delete capabilities.
     *   **Public Mode:** Read-only view for sharing your library with the world securely.
@@ -40,7 +41,8 @@ Built with **Python (Flask)**, **SQLite**, and **Docker**.
     │   ├── index.html          # Home/Search/Filter
     │   ├── book_detail.html    # Single book view
     │   ├── add_book.html       # Add & Edit form
-    │   └── audit.html          # Data hygiene dashboard
+    │   ├── audit.html          # Data hygiene dashboard
+    │   └── search.html         # Advanced field/operator/value query
     ├── static/                 # Static assets
     │   ├── favicon.svg         # Site favicon
     │   └── covers/             # Locally hosted cover images
@@ -98,7 +100,7 @@ docker-compose up -d
 *   **Admin Console (Read/Write):** `http://localhost:5011`
     *   *Features:* Add, Edit, Delete, Audit, Settings.
 *   **Public Mirror (Read-Only):** `http://localhost:5010`
-    *   *Features:* Search, Filter, Sort, View Details. All admin routes return 404.
+    *   *Features:* Search, Filter, Sort, Advanced Search, View Details. All admin routes return 404.
 
 ---
 
@@ -119,13 +121,20 @@ For books that pre-date ISBNs or are limited editions:
 
 ## 🛣️ Roadmap & Versioning
 
-**Current Version:** v1.2.1
+**Current Version:** v1.3.0
 
 ### Changelog
-**v1.2.1** - Add cover_filename field on Add and Edit forms in the Admin view.    
-**v1.2.0** - Local cover image support via static/covers volume mount.  
-**v1.1.0** - Full visual refresh of all templates.  
-**v1.0.1** - Audit page now includes books missing weight data.  
+
+**v1.3.0** - Advanced Search page (`/search`) with field/operator/value query builder across all books. Available in both Admin and Public modes. Also adds dynamic filter to the Physical Audit tab.
+
+**v1.2.1** - Add cover_filename field on Add and Edit forms in the Admin view.
+
+**v1.2.0** - Local cover image support via static/covers volume mount.
+
+**v1.1.0** - Full visual refresh of all templates.
+
+**v1.0.1** - Audit page now includes books missing weight data.
+
 **v1.0.0** - Initial Release (Phase 1 Completed)
 
 ### Phase 1: Core & Infrastructure (Completed)

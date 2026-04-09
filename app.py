@@ -147,6 +147,69 @@ def book_detail(book_id):
 
     return render_template('book_detail.html', book=book, siblings=siblings)
 
+@app.route('/search')
+def search_page():
+    ALLOWED_FIELDS = {'height', 'width', 'weight', 'title', 'author', 'binding'}
+    ALLOWED_OPERATORS = {
+        'equals', 'not_equals', 'less_than', 'greater_than', 'lte', 'gte',
+        'starts_with', 'contains', 'is_null', 'is_not_null'
+    }
+
+    filter_field = request.args.get('field', '')
+    filter_operator = request.args.get('operator', '')
+    filter_value = request.args.get('value', '')
+
+    where_clause = ''
+    params = []
+
+    if filter_field in ALLOWED_FIELDS and filter_operator in ALLOWED_OPERATORS:
+        col = filter_field  # safe: validated against allowlist
+        if filter_operator == 'equals':
+            where_clause = f'WHERE {col} = ?'
+            params = [filter_value]
+        elif filter_operator == 'not_equals':
+            where_clause = f'WHERE {col} != ?'
+            params = [filter_value]
+        elif filter_operator == 'less_than':
+            where_clause = f'WHERE {col} < ?'
+            params = [filter_value]
+        elif filter_operator == 'greater_than':
+            where_clause = f'WHERE {col} > ?'
+            params = [filter_value]
+        elif filter_operator == 'lte':
+            where_clause = f'WHERE {col} <= ?'
+            params = [filter_value]
+        elif filter_operator == 'gte':
+            where_clause = f'WHERE {col} >= ?'
+            params = [filter_value]
+        elif filter_operator == 'starts_with':
+            where_clause = f'WHERE {col} LIKE ?'
+            params = [filter_value + '%']
+        elif filter_operator == 'contains':
+            where_clause = f'WHERE {col} LIKE ?'
+            params = ['%' + filter_value + '%']
+        elif filter_operator == 'is_null':
+            where_clause = f'WHERE ({col} IS NULL OR {col} = "" OR {col} = 0)'
+        elif filter_operator == 'is_not_null':
+            where_clause = f'WHERE {col} IS NOT NULL AND {col} != "" AND {col} != 0'
+
+    conn = get_db_connection()
+    books = conn.execute(f'''
+        SELECT id, title, author, height, width, weight, binding, published_year
+        FROM books
+        {where_clause}
+        ORDER BY author ASC, title ASC
+    ''', params).fetchall()
+    conn.close()
+
+    return render_template('search.html',
+        books=books,
+        filter_field=filter_field,
+        filter_operator=filter_operator,
+        filter_value=filter_value,
+        filter_active=bool(filter_field and filter_operator)
+    )
+
 if not IS_READ_ONLY:
     @app.route('/add', methods=('GET', 'POST'))
     def add_book():
@@ -371,25 +434,76 @@ if not IS_READ_ONLY:
     @app.route('/audit')
     def audit_page():
         conn = get_db_connection()
-        
+
         # MODIFIED QUERY: Exclude books where no_isbn = 1
         missing_isbn = conn.execute('''
-            SELECT * FROM books 
-            WHERE (isbn IS NULL OR isbn = '') 
-            AND (no_isbn IS NULL OR no_isbn = 0) 
+            SELECT * FROM books
+            WHERE (isbn IS NULL OR isbn = '')
+            AND (no_isbn IS NULL OR no_isbn = 0)
             ORDER BY author ASC, title ASC
         ''').fetchall()
-        
-        missing_dims = conn.execute('''
-            SELECT * FROM books 
-            WHERE (height IS NULL OR height = 0) 
-            OR (width IS NULL OR width = 0) 
-            OR (weight IS NULL OR weight = 0)
+
+        ALLOWED_FIELDS = {'height', 'width', 'weight', 'title', 'author', 'binding'}
+        ALLOWED_OPERATORS = {
+            'equals', 'not_equals', 'less_than', 'greater_than', 'lte', 'gte',
+            'starts_with', 'contains', 'is_null', 'is_not_null'
+        }
+
+        filter_field = request.args.get('field', '')
+        filter_operator = request.args.get('operator', '')
+        filter_value = request.args.get('value', '')
+
+        extra_clause = ''
+        extra_params = []
+
+        if filter_field in ALLOWED_FIELDS and filter_operator in ALLOWED_OPERATORS:
+            col = filter_field  # safe: validated against allowlist
+            if filter_operator == 'equals':
+                extra_clause = f' AND {col} = ?'
+                extra_params = [filter_value]
+            elif filter_operator == 'not_equals':
+                extra_clause = f' AND {col} != ?'
+                extra_params = [filter_value]
+            elif filter_operator == 'less_than':
+                extra_clause = f' AND {col} < ?'
+                extra_params = [filter_value]
+            elif filter_operator == 'greater_than':
+                extra_clause = f' AND {col} > ?'
+                extra_params = [filter_value]
+            elif filter_operator == 'lte':
+                extra_clause = f' AND {col} <= ?'
+                extra_params = [filter_value]
+            elif filter_operator == 'gte':
+                extra_clause = f' AND {col} >= ?'
+                extra_params = [filter_value]
+            elif filter_operator == 'starts_with':
+                extra_clause = f' AND {col} LIKE ?'
+                extra_params = [filter_value + '%']
+            elif filter_operator == 'contains':
+                extra_clause = f' AND {col} LIKE ?'
+                extra_params = ['%' + filter_value + '%']
+            elif filter_operator == 'is_null':
+                extra_clause = f' AND ({col} IS NULL OR {col} = "" OR {col} = 0)'
+            elif filter_operator == 'is_not_null':
+                extra_clause = f' AND {col} IS NOT NULL AND {col} != "" AND {col} != 0'
+
+        missing_dims = conn.execute(f'''
+            SELECT * FROM books
+            WHERE ((height IS NULL OR height = 0)
+            OR (width IS NULL OR width = 0)
+            OR (weight IS NULL OR weight = 0))
+            {extra_clause}
             ORDER BY author ASC, series_title ASC, series_number ASC, title ASC
-        ''').fetchall()
-        
+        ''', extra_params).fetchall()
+
         conn.close()
-        return render_template('audit.html', missing_isbn=missing_isbn, missing_dims=missing_dims)
+        return render_template('audit.html',
+            missing_isbn=missing_isbn,
+            missing_dims=missing_dims,
+            filter_field=filter_field,
+            filter_operator=filter_operator,
+            filter_value=filter_value
+        )
 
 if not IS_READ_ONLY:
     @app.route('/api/mark_no_isbn', methods=['POST'])
