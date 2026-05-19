@@ -316,13 +316,19 @@
 
     <div class="grid-2">
         <div class="card">
-            <div class="card-header"><div class="dot dot-teal"></div>Reading Status</div>
+            <div class="card-header">
+                <div class="dot dot-teal"></div>Reading Status
+                <span style="margin-left:auto; font-size:9px; color:var(--text-dim); letter-spacing:0.06em;">Click to filter</span>
+            </div>
             <div class="chart-container">
                 <canvas id="statusChart"></canvas>
             </div>
         </div>
         <div class="card">
-            <div class="card-header"><div class="dot dot-blue"></div>Format Breakdown</div>
+            <div class="card-header">
+                <div class="dot dot-blue"></div>Format Breakdown
+                <span style="margin-left:auto; font-size:9px; color:var(--text-dim); letter-spacing:0.06em;">Click to filter</span>
+            </div>
             <div class="chart-container">
                 <canvas id="formatChart"></canvas>
             </div>
@@ -405,6 +411,12 @@
         const statusLabels = Object.keys(statusData);
         const statusColors = statusLabels.map(l => statusColorMap[l] || '#3a3c46');
 
+        const statusFilterMap = {
+            'Read':     '/?filter=read',
+            'To Read':  '/?filter=tbr',
+            'DNF':      '/?filter=dnf'
+        };
+
         new Chart(document.getElementById('statusChart'), {
             type: 'doughnut',
             data: {
@@ -420,6 +432,15 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
+                onClick: (event, elements) => {
+                    if (!elements.length) return;
+                    const label = statusLabels[elements[0].index];
+                    if (statusFilterMap[label]) window.location.href = statusFilterMap[label];
+                },
+                onHover: (event, elements) => {
+                    const label = elements.length ? statusLabels[elements[0].index] : null;
+                    event.native.target.style.cursor = (label && statusFilterMap[label]) ? 'pointer' : 'default';
+                },
                 plugins: {
                     legend: {
                         position: 'bottom',
@@ -452,6 +473,17 @@
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: true,
+                onClick: (event, elements) => {
+                    if (!elements.length) return;
+                    const binding = formatData[elements[0].index].binding;
+                    if (binding !== 'Unknown') {
+                        window.location.href = `/search?field=binding&operator=equals&value=${encodeURIComponent(binding)}`;
+                    }
+                },
+                onHover: (event, elements) => {
+                    const binding = elements.length ? formatData[elements[0].index].binding : null;
+                    event.native.target.style.cursor = (binding && binding !== 'Unknown') ? 'pointer' : 'default';
+                },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
