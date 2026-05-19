@@ -587,9 +587,16 @@ def stats_page():
         SELECT
             series_title,
             COUNT(*) as total_owned,
-            SUM(CASE WHEN read_status = 'Read' THEN 1 ELSE 0 END) as read_count
-        FROM books
-        WHERE series_title IS NOT NULL AND series_title != ''
+            SUM(is_read) as read_count
+        FROM (
+            SELECT
+                series_title,
+                title,
+                MAX(CASE WHEN read_status = 'Read' THEN 1 ELSE 0 END) as is_read
+            FROM books
+            WHERE series_title IS NOT NULL AND series_title != ''
+            GROUP BY series_title, title
+        ) deduped
         GROUP BY series_title
         HAVING read_count > 0 AND read_count < total_owned
         ORDER BY series_title ASC
