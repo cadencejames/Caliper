@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="static/favicon.svg" width="80" height="80" alt="Caliper">
+</p>
+
 # Caliper: The Physical Library Manager
 ![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)
 ![Flask](https://img.shields.io/badge/framework-Flask-lightgrey)
