@@ -121,10 +121,11 @@ For books that pre-date ISBNs or are limited editions:
 
 ## 🛣️ Roadmap & Versioning
 
-**Current Version:** v1.3.0
+**Current Version:** v2.0.0
 
 ### Changelog
 
+**v2.0.0** - Stats Dashboard (`/stats`) with Chart.js visualizations: reading status distribution, format breakdown, unfinished series tracker, TBR page mountain, library weight, shelf height, signed copies, DNF rate, oldest and longest book highlights. Also adds input sanitization (whitespace trimming) on all Add/Edit book fields.  
 **v1.3.0** - Advanced Search page (`/search`) with field/operator/value query builder across all books. Available in both Admin and Public modes. Also adds dynamic filter to the Physical Audit tab.  
 **v1.2.1** - Add cover_filename field on Add and Edit forms in the Admin view.  
 **v1.2.0** - Local cover image support via static/covers volume mount.  
@@ -141,7 +142,7 @@ For books that pre-date ISBNs or are limited editions:
 - [x] Smart "Duplicate Copy" detection
 
 ### Phase 2: Discovery & Visualization (In Progress)
-- [ ] **Stats Dashboard:** Visual charts and metrics including reading status distribution, library weight, format breakdown, TBR page mountain, DNF rate, longest/oldest book, signed copies count, total shelf height, and unfinished series.
+- [x] **Stats Dashboard:** Visual charts and metrics including reading status distribution, library weight, format breakdown, TBR page mountain, DNF rate, longest/oldest book, signed copies count, total shelf height, and unfinished series.
 - [ ] **Series Navigation:** Dedicated view to list books in a series order (e.g. 1, 2, 3) to identify gaps.
 - [ ] **Random Picker:** A "Shuffle" button to help pick the next read from the TBR pile.
 - [ ] **Data Export:** One-click CSV/DB backup from the Admin interface.
