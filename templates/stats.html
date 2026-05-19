@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <title>Stats — Caliper</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #161820;
+            --surface-alt: #1e2030;
+            --border: #2a2c35;
+            --border-dim: #1a1c24;
+            --text-primary: #c8c6be;
+            --text-secondary: #8a887e;
+            --text-muted: #6b6960;
+            --text-dim: #5a5c66;
+            --text-bright: #e8e6de;
+            --accent-dim: #0f6e56;
+            --teal: #1d9e75;
+            --blue: #378add;
+            --amber: #ba7517;
+            --red: #e24b4a;
+            --gray: #3a3c46;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 12px;
+            padding: 24px;
+            line-height: 1.5;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+            gap: 16px;
+        }
+
+        .header-left h1 {
+            font-size: 28px;
+            font-weight: 300;
+            color: var(--text-bright);
+            letter-spacing: 0.05em;
+            margin-bottom: 2px;
+        }
+
+        .header-left .subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            text-decoration: none;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+            display: inline-block;
+        }
+        .btn-ghost { background: var(--surface); color: var(--text-muted); }
+        .btn-ghost:hover { color: var(--text-primary); background: var(--surface-alt); }
+
+        .stats-row {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .stat-value { font-size: 18px; font-weight: 300; color: var(--text-bright); letter-spacing: 0.02em; }
+        .stat-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+        .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .dot-teal { background: var(--teal); }
+        .dot-blue { background: var(--blue); }
+        .dot-amber { background: var(--amber); }
+        .dot-gray { background: var(--gray); }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 7px 14px;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            background: var(--surface-alt);
+        }
+
+        .chart-container {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 260px;
+        }
+
+        .chart-container canvas { max-height: 240px; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th {
+            padding: 8px 14px;
+            text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            background: var(--surface-alt);
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-dim);
+            vertical-align: middle;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #1a1c26; }
+
+        .series-name {
+            color: var(--text-bright);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .progress-bar-track {
+            background: var(--surface-alt);
+            border-radius: 3px;
+            height: 5px;
+            width: 100%;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            background: var(--teal);
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        .progress-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .highlight-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .highlight-item {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-dim);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .highlight-item:last-child { border-bottom: none; }
+
+        .highlight-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        .highlight-value {
+            font-size: 13px;
+            color: var(--text-bright);
+            font-weight: 500;
+        }
+
+        .highlight-sub {
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+
+        .dnf-rate-display {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .dnf-rate-pct {
+            font-size: 22px;
+            font-weight: 300;
+            color: var(--text-bright);
+        }
+
+        .dnf-rate-detail {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .empty-state {
+            padding: 32px 14px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 14px; }
+            .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .stats-row { gap: 8px; }
+            .stat-card { min-width: calc(50% - 4px); }
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-left">
+            <h1>Stats</h1>
+            <div class="subtitle">Caliper · Collection Analytics</div>
+        </div>
+        <div class="header-right">
+            <a href="/" class="btn btn-ghost">← Library</a>
+        </div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card" title="Total number of physical books in your collection">
+            <div class="dot dot-teal"></div>
+            <div>
+                <div class="stat-value">{{ total_books }}</div>
+                <div class="stat-label">Total Books</div>
+            </div>
+        </div>
+        <div class="stat-card" title="Total page count across all unread books">
+            <div class="dot dot-blue"></div>
+            <div>
+                <div class="stat-value">{{ tbr_pages | int }}</div>
+                <div class="stat-label">TBR Pages</div>
+            </div>
+        </div>
+        <div class="stat-card" title="Combined weight of all books with weight data recorded">
+            <div class="dot dot-teal"></div>
+            <div>
+                <div class="stat-value">{{ total_weight_kg }}</div>
+                <div class="stat-label">Total Weight (kg)</div>
+            </div>
+        </div>
+        <div class="stat-card" title="Combined height of all books stacked end to end">
+            <div class="dot dot-blue"></div>
+            <div>
+                <div class="stat-value">{{ total_height_m }}</div>
+                <div class="stat-label">Shelf Height (m)</div>
+            </div>
+        </div>
+        <div class="stat-card" title="Books marked as signed or autographed">
+            <div class="dot dot-amber"></div>
+            <div>
+                <div class="stat-value">{{ signed_count }}</div>
+                <div class="stat-label">Signed Copies</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-header"><div class="dot dot-teal"></div>Reading Status</div>
+            <div class="chart-container">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><div class="dot dot-blue"></div>Format Breakdown</div>
+            <div class="chart-container">
+                <canvas id="formatChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-header"><div class="dot dot-teal"></div>Unfinished Series{% if unfinished_series %} <span style="color: var(--text-dim); font-weight: 400;">({{ unfinished_series | length }})</span>{% endif %}</div>
+            {% if unfinished_series %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Series</th>
+                        <th style="text-align:right; width:120px">Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in unfinished_series %}
+                    <tr>
+                        <td>
+                            <div class="series-name">{{ s.series_title }}</div>
+                            <div class="progress-bar-track">
+                                <div class="progress-bar-fill" style="width: {{ (s.read_count / s.total_owned * 100) | int }}%"></div>
+                            </div>
+                        </td>
+                        <td style="text-align:right">
+                            <div class="progress-label">{{ s.read_count }} / {{ s.total_owned }} read</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">All series are fully read — or none started yet.</div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-header"><div class="dot dot-amber"></div>Collection Highlights</div>
+            <div class="highlight-row">
+                <div class="highlight-item">
+                    <div class="highlight-label">DNF Rate</div>
+                    <div class="dnf-rate-display">
+                        <div class="dnf-rate-pct">{{ dnf_rate }}%</div>
+                        <div class="dnf-rate-detail">{{ dnf_count }} of {{ total_books }} books</div>
+                    </div>
+                </div>
+                {% if oldest_book %}
+                <div class="highlight-item">
+                    <div class="highlight-label">Oldest Book</div>
+                    <div class="highlight-value">{{ oldest_book.title }}</div>
+                    <div class="highlight-sub">{{ oldest_book.author }} · {{ oldest_book.published_year }}</div>
+                </div>
+                {% endif %}
+                {% if longest_book %}
+                <div class="highlight-item">
+                    <div class="highlight-label">Longest Book</div>
+                    <div class="highlight-value">{{ longest_book.title }}</div>
+                    <div class="highlight-sub">{{ longest_book.author }} · {{ longest_book.page_count }} pages</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        Chart.defaults.color = '#6b6960';
+        Chart.defaults.borderColor = '#2a2c35';
+        Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+        Chart.defaults.font.size = 11;
+
+        const statusData = {{ status_counts | tojson }};
+        const statusColorMap = {
+            'Read':      '#1d9e75',
+            'To Read':   '#378add',
+            'DNF':       '#e24b4a',
+            'No Status': '#3a3c46'
+        };
+        const statusLabels = Object.keys(statusData);
+        const statusColors = statusLabels.map(l => statusColorMap[l] || '#3a3c46');
+
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: Object.values(statusData),
+                    backgroundColor: statusColors,
+                    borderColor: '#161820',
+                    borderWidth: 3,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 16, boxWidth: 10, boxHeight: 10 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.label}: ${ctx.raw} books`
+                        }
+                    }
+                }
+            }
+        });
+
+        const formatData = {{ format_counts | tojson }};
+        new Chart(document.getElementById('formatChart'), {
+            type: 'bar',
+            data: {
+                labels: formatData.map(f => f.binding),
+                datasets: [{
+                    data: formatData.map(f => f.count),
+                    backgroundColor: '#1d9e75',
+                    borderColor: '#0f6e56',
+                    borderWidth: 1,
+                    borderRadius: 3,
+                    hoverBackgroundColor: '#26b887'
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.raw} books`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: '#1a1c24' },
+                        ticks: { precision: 0 }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

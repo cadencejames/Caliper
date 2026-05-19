@@ -32,6 +32,11 @@ def extract_year(date_str):
     if match: return int(match.group(0))
     return None
 
+def clean_str(val):
+    if not val: return None
+    stripped = val.strip()
+    return stripped if stripped else None
+
 # --- ROUTES ---
 
 @app.route('/')
@@ -214,38 +219,36 @@ if not IS_READ_ONLY:
     @app.route('/add', methods=('GET', 'POST'))
     def add_book():
         if request.method == 'POST':
-            title = request.form['title']
-            author = request.form['author']
+            title = request.form['title'].strip()
+            author = request.form['author'].strip()
             read_status = request.form.get('read_status') or None # Handle empty as None
-            
+
             if not title or not author:
                 return render_template('add_book.html')
 
             def clean_num(val, func):
                 return func(val) if val else None
-            raw_isbn = request.form.get('isbn')
-            if raw_isbn and raw_isbn.strip().lower() == 'none':
-                raw_isbn = None
-            elif raw_isbn and raw_isbn.strip() == '':
+            raw_isbn = clean_str(request.form.get('isbn'))
+            if raw_isbn and raw_isbn.lower() == 'none':
                 raw_isbn = None
             book_data = {
                 'title': title,
                 'author': author,
                 'isbn': raw_isbn,
-                'publisher': request.form.get('publisher'),
-                'binding': request.form.get('binding'),
+                'publisher': clean_str(request.form.get('publisher')),
+                'binding': clean_str(request.form.get('binding')),
                 'read_status': read_status,
                 'is_signed': 1 if request.form.get('is_signed') else 0,
                 'page_count': clean_num(request.form.get('page_count'), int),
                 'published_year': clean_num(request.form.get('published_year'), int),
-                'series_title': request.form.get('series_title') or None,
+                'series_title': clean_str(request.form.get('series_title')),
                 'series_number': clean_num(request.form.get('series_number'), float),
                 'height': clean_num(request.form.get('height'), float),
                 'width': clean_num(request.form.get('width'), float),
                 'weight': clean_num(request.form.get('weight'), float),
-                'notes': request.form.get('notes'),
-                'cover_url': request.form.get('cover_url'),
-                'cover_filename': request.form.get('cover_filename') or None
+                'notes': clean_str(request.form.get('notes')),
+                'cover_url': clean_str(request.form.get('cover_url')),
+                'cover_filename': clean_str(request.form.get('cover_filename'))
             }
 
             conn = get_db_connection()
@@ -288,39 +291,34 @@ if not IS_READ_ONLY:
             abort(404)
 
         if request.method == 'POST':
-            title = request.form['title']
-            author = request.form['author']
+            title = request.form['title'].strip()
+            author = request.form['author'].strip()
             read_status = request.form.get('read_status') or None
 
             def clean_num(val, func):
                 return func(val) if val else None
 
-            series_title = request.form.get('series_title')
-            if not series_title or series_title.strip() == "":
-                series_title = None
-            raw_isbn = request.form.get('isbn')
-            if raw_isbn and raw_isbn.strip().lower() == 'none':
-                raw_isbn = None
-            elif raw_isbn and raw_isbn.strip() == '':
+            raw_isbn = clean_str(request.form.get('isbn'))
+            if raw_isbn and raw_isbn.lower() == 'none':
                 raw_isbn = None
             book_data = {
                 'title': title,
                 'author': author,
                 'isbn': raw_isbn,
-                'publisher': request.form.get('publisher'),
-                'binding': request.form.get('binding'),
+                'publisher': clean_str(request.form.get('publisher')),
+                'binding': clean_str(request.form.get('binding')),
                 'read_status': read_status,
                 'is_signed': 1 if request.form.get('is_signed') else 0,
                 'page_count': clean_num(request.form.get('page_count'), int),
                 'published_year': clean_num(request.form.get('published_year'), int),
-                'series_title': series_title,
+                'series_title': clean_str(request.form.get('series_title')),
                 'series_number': clean_num(request.form.get('series_number'), float),
                 'height': clean_num(request.form.get('height'), float),
                 'width': clean_num(request.form.get('width'), float),
                 'weight': clean_num(request.form.get('weight'), float),
-                'notes': request.form.get('notes'),
-                'cover_url': request.form.get('cover_url'),
-                'cover_filename': request.form.get('cover_filename') or None,
+                'notes': clean_str(request.form.get('notes')),
+                'cover_url': clean_str(request.form.get('cover_url')),
+                'cover_filename': clean_str(request.form.get('cover_filename')),
                 'id': book_id
             }
 
@@ -543,6 +541,78 @@ if not IS_READ_ONLY:
             return jsonify({'success': True})
         
         return jsonify({'success': False}), 400
+
+@app.route('/stats')
+def stats_page():
+    conn = get_db_connection()
+
+    total_books = conn.execute('SELECT COUNT(*) FROM books').fetchone()[0]
+    signed_count = conn.execute('SELECT COUNT(*) FROM books WHERE is_signed = 1').fetchone()[0]
+
+    tbr_pages = conn.execute(
+        "SELECT COALESCE(SUM(page_count), 0) FROM books WHERE read_status = 'To Read' AND page_count IS NOT NULL"
+    ).fetchone()[0]
+
+    total_weight_g = conn.execute(
+        'SELECT COALESCE(SUM(weight), 0) FROM books WHERE weight IS NOT NULL'
+    ).fetchone()[0]
+
+    total_height_mm = conn.execute(
+        'SELECT COALESCE(SUM(height), 0) FROM books WHERE height IS NOT NULL'
+    ).fetchone()[0]
+
+    oldest_book = conn.execute(
+        'SELECT title, author, published_year FROM books WHERE published_year IS NOT NULL ORDER BY published_year ASC LIMIT 1'
+    ).fetchone()
+
+    longest_book = conn.execute(
+        'SELECT title, author, page_count FROM books WHERE page_count IS NOT NULL ORDER BY page_count DESC LIMIT 1'
+    ).fetchone()
+
+    dnf_count = conn.execute(
+        "SELECT COUNT(*) FROM books WHERE read_status = 'DNF'"
+    ).fetchone()[0]
+
+    status_rows = conn.execute(
+        "SELECT COALESCE(read_status, 'No Status') as status, COUNT(*) as count FROM books GROUP BY status"
+    ).fetchall()
+    status_counts = {row['status']: row['count'] for row in status_rows}
+
+    format_rows = conn.execute(
+        "SELECT COALESCE(NULLIF(TRIM(binding), ''), 'Unknown') as binding, COUNT(*) as count FROM books GROUP BY TRIM(binding) ORDER BY count DESC"
+    ).fetchall()
+    format_counts = [{'binding': row['binding'], 'count': row['count']} for row in format_rows]
+
+    unfinished_series = conn.execute('''
+        SELECT
+            series_title,
+            COUNT(*) as total_owned,
+            SUM(CASE WHEN read_status = 'Read' THEN 1 ELSE 0 END) as read_count
+        FROM books
+        WHERE series_title IS NOT NULL AND series_title != ''
+        GROUP BY series_title
+        HAVING read_count > 0 AND read_count < total_owned
+        ORDER BY series_title ASC
+    ''').fetchall()
+
+    conn.close()
+
+    dnf_rate = round(dnf_count / total_books * 100, 1) if total_books > 0 else 0
+
+    return render_template('stats.html',
+        total_books=total_books,
+        signed_count=signed_count,
+        tbr_pages=tbr_pages,
+        total_weight_kg=round(total_weight_g / 1000, 1),
+        total_height_m=round(total_height_mm / 1000, 1),
+        oldest_book=dict(oldest_book) if oldest_book else None,
+        longest_book=dict(longest_book) if longest_book else None,
+        dnf_count=dnf_count,
+        dnf_rate=dnf_rate,
+        status_counts=status_counts,
+        format_counts=format_counts,
+        unfinished_series=[dict(s) for s in unfinished_series]
+    )
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
