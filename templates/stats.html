@@ -406,15 +406,17 @@
             'Read':      '#1d9e75',
             'To Read':   '#378add',
             'DNF':       '#e24b4a',
+            'Reference': '#ba7517',
             'No Status': '#3a3c46'
         };
         const statusLabels = Object.keys(statusData);
         const statusColors = statusLabels.map(l => statusColorMap[l] || '#3a3c46');
 
         const statusFilterMap = {
-            'Read':     '/?filter=read',
-            'To Read':  '/?filter=tbr',
-            'DNF':      '/?filter=dnf'
+            'Read':      '/?filter=read',
+            'To Read':   '/?filter=tbr',
+            'DNF':       '/?filter=dnf',
+            'Reference': '/?filter=reference'
         };
 
         new Chart(document.getElementById('statusChart'), {

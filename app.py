@@ -72,6 +72,8 @@ def index():
         where_clause = "WHERE read_status = 'To Read'"
     elif filter_param == 'dnf':
         where_clause = "WHERE read_status = 'DNF'"
+    elif filter_param == 'reference':
+        where_clause = "WHERE read_status = 'Reference'"
     elif filter_param == 'signed':
         where_clause = "WHERE is_signed = 1"
 

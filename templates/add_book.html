@@ -260,6 +260,10 @@
                             <option value="Paperback" {% if book and book['binding'] == 'Paperback' %}selected{% endif %}>Paperback</option>
                             <option value="Hardcover" {% if book and book['binding'] == 'Hardcover' %}selected{% endif %}>Hardcover</option>
                             <option value="Mass Market Paperback" {% if book and book['binding'] == 'Mass Market Paperback' %}selected{% endif %}>Mass Market Paperback</option>
+                            <option value="Leatherbound" {% if book and book['binding'] == 'Leatherbound' %}selected{% endif %}>Leatherbound</option>
+                            <option value="Clothbound" {% if book and book['binding'] == 'Clothbound' %}selected{% endif %}>Clothbound</option>
+                            <option value="Spiral Bound" {% if book and book['binding'] == 'Spiral Bound' %}selected{% endif %}>Spiral Bound</option>
+                            <option value="Board Book" {% if book and book['binding'] == 'Board Book' %}selected{% endif %}>Board Book</option>
                             <option value="eBook" {% if book and book['binding'] == 'eBook' %}selected{% endif %}>eBook</option>
                             <option value="Other" {% if book and book['binding'] == 'Other' %}selected{% endif %}>Other</option>
                         </select>
