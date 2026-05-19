@@ -141,7 +141,7 @@ For books that pre-date ISBNs or are limited editions:
 - [x] Smart "Duplicate Copy" detection
 
 ### Phase 2: Discovery & Visualization (In Progress)
-- [ ] **Stats Dashboard:** Visual charts for reading status, library weight, and format distribution.
+- [ ] **Stats Dashboard:** Visual charts and metrics including reading status distribution, library weight, format breakdown, TBR page mountain, DNF rate, longest/oldest book, signed copies count, total shelf height, and unfinished series.
 - [ ] **Series Navigation:** Dedicated view to list books in a series order (e.g. 1, 2, 3) to identify gaps.
 - [ ] **Random Picker:** A "Shuffle" button to help pick the next read from the TBR pile.
 - [ ] **Data Export:** One-click CSV/DB backup from the Admin interface.
@@ -151,6 +151,7 @@ For books that pre-date ISBNs or are limited editions:
 - [ ] **Barcode Scanning:** Native camera integration to add books by scanning physical barcodes.
 - [ ] **Advanced API Fallbacks:** Fallback to Google Books API if Open Library data is missing.
 - [ ] **Tagging System:** Custom user-defined tags for custom collections.
+- [ ] **Fun Stats:** Relational-data-powered stats including series gap detection (owned 1 & 3, missing 2) and most collected author — enabled by the Author and Series tables.
 
 ---
 
