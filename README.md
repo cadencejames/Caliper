@@ -164,18 +164,21 @@ The CSV format matches the export exactly. `read_status` values are case-sensiti
 - [x] Audit Dashboard for rapid data entry
 - [x] Smart "Duplicate Copy" detection
 
-### Phase 2: Discovery & Visualization (In Progress)
+### Phase 2: Discovery & Visualization (Completed)
 - [x] **Stats Dashboard:** Visual charts and metrics including reading status distribution, library weight, format breakdown, TBR page mountain, DNF rate, longest/oldest book, signed copies count, total shelf height, and unfinished series.
-- [ ] **Series Navigation:** Dedicated view to list books in a series order (e.g. 1, 2, 3) to identify gaps.
 - [x] **Random Picker:** A "Shuffle" button presents a random TBR book on a reveal page with cover art and pick-again option.
 - [x] **Data Import/Export:** CSV export and import with a preview/confirm flow. Admin-only.
 
 ### Phase 3: Architecture & Enrichment (Planned)
-- [ ] **Author Normalization:** Migration to a relational `Authors` table to better track metadata (Gender, Nationality).
 - [ ] **Barcode Scanning:** Native camera integration to add books by scanning physical barcodes.
 - [ ] **Advanced API Fallbacks:** Fallback to Google Books API if Open Library data is missing.
 - [ ] **Tagging System:** Custom user-defined tags for custom collections.
-- [ ] **Fun Stats:** Relational-data-powered stats including series gap detection (owned 1 & 3, missing 2) and most collected author — enabled by the Author and Series tables.
+
+### Phase 4: Relational Data (Planned)
+- [ ] **Author Table:** Relational `Authors` table with enriched metadata (nationality, gender, birth year) sourced via API with manual override.
+- [ ] **Series Table:** Relational `Series` table with full series knowledge — total book count, individual titles, and publication order — sourced from Google Books and Wikidata with manual override.
+- [ ] **Series Navigation:** Dedicated series view with gap detection, showing owned books in order and flagging missing entries against known series totals.
+- [ ] **Fun Stats:** Relational-data-powered stats including series gap detection and most collected author — enabled by the Author and Series tables.
 
 ---
 
