@@ -670,6 +670,27 @@ def stats_page():
         unfinished_series=[dict(s) for s in unfinished_series]
     )
 
+@app.route('/random')
+def random_book():
+    conn = get_db_connection()
+    book = conn.execute(
+        "SELECT * FROM books WHERE read_status = 'To Read' ORDER BY RANDOM() LIMIT 1"
+    ).fetchone()
+    conn.close()
+
+    if book:
+        book = dict(book)
+        cover_filename = book.get('cover_filename')
+        local_cover_path = os.path.join(app.static_folder, 'covers', cover_filename) if cover_filename else None
+        if cover_filename and local_cover_path and os.path.exists(local_cover_path):
+            book['resolved_cover'] = '/static/covers/' + cover_filename
+        elif book.get('cover_url'):
+            book['resolved_cover'] = book['cover_url']
+        else:
+            book['resolved_cover'] = None
+
+    return render_template('random.html', book=book)
+
 if not IS_READ_ONLY:
     @app.route('/export')
     def export_books():

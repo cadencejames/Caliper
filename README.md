@@ -30,6 +30,7 @@ Built with **Python (Flask)**, **SQLite**, and **Docker**.
 *   **Smart Linking:** Automatically detects and links duplicate copies (e.g., Hardcover vs. Paperback) on the detail page.
 *   **Reading Status:** Track Read, TBR, DNF, and Signed copies with visual badges.
 *   **Data Import/Export:** One-click CSV export of your full library. CSV import with a preview/confirm step — review all rows before anything is saved, with skipped rows shown with reasons.
+*   **TBR Shuffle:** A "Shuffle" button picks a random book from your To Read pile and presents it on a reveal page with cover art, series info, and the option to pick again.
 
 ---
 
@@ -49,7 +50,8 @@ Built with **Python (Flask)**, **SQLite**, and **Docker**.
     │   ├── audit.html          # Data hygiene dashboard
     │   ├── search.html         # Advanced field/operator/value query
     │   ├── stats.html          # Collection analytics dashboard
-    │   └── import.html         # CSV import/export
+    │   ├── import.html         # CSV import/export
+    │   └── random.html         # TBR shuffle / reveal page
     ├── static/                 # Static assets
     │   ├── favicon.svg         # Site favicon
     │   └── covers/             # Locally hosted cover images
@@ -128,10 +130,11 @@ For books that pre-date ISBNs or are limited editions:
 
 ## 🛣️ Roadmap & Versioning
 
-**Current Version:** v2.1.0
+**Current Version:** v2.2.0
 
 ### Changelog
 
+**v2.2.0** - TBR Shuffle (`/random`): picks a random To Read book and presents it on a reveal page with cover art, title, author, series, and format. Includes "Let's Read It" and "Pick Again" buttons. Empty TBR shows a friendly message.  
 **v2.1.0** - Admin-only CSV import/export. Export downloads a full library CSV including all fields. Import uses a preview/confirm flow: parse the file, review all rows before anything is committed, with skipped rows shown with reasons. Handles Excel BOM encoding, rejects non-CSV files, and wraps all inserts in a single transaction (rolls back on failure). Also adds `cover_filename` to the database schema.  
 **v2.0.0** - Stats Dashboard (`/stats`) with Chart.js visualizations: reading status distribution, format breakdown, unfinished series tracker, TBR page mountain, library weight, shelf height, signed copies, DNF rate, oldest and longest book highlights. Also adds input sanitization (whitespace trimming) on all Add/Edit book fields.  
 **v1.3.0** - Advanced Search page (`/search`) with field/operator/value query builder across all books. Available in both Admin and Public modes. Also adds dynamic filter to the Physical Audit tab.  
@@ -152,7 +155,7 @@ For books that pre-date ISBNs or are limited editions:
 ### Phase 2: Discovery & Visualization (In Progress)
 - [x] **Stats Dashboard:** Visual charts and metrics including reading status distribution, library weight, format breakdown, TBR page mountain, DNF rate, longest/oldest book, signed copies count, total shelf height, and unfinished series.
 - [ ] **Series Navigation:** Dedicated view to list books in a series order (e.g. 1, 2, 3) to identify gaps.
-- [ ] **Random Picker:** A "Shuffle" button to help pick the next read from the TBR pile.
+- [x] **Random Picker:** A "Shuffle" button presents a random TBR book on a reveal page with cover art and pick-again option.
 - [x] **Data Import/Export:** CSV export and import with a preview/confirm flow. Admin-only.
 
 ### Phase 3: Architecture & Enrichment (Planned)
