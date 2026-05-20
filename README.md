@@ -107,9 +107,9 @@ docker-compose up -d
 
 ### 3. Ports
 *   **Admin Console (Read/Write):** `http://localhost:5011`
-    *   *Features:* Add, Edit, Delete, Audit, Settings.
+    *   *Features:* Add, Edit, Delete, Audit, Import/Export, Stats, Shuffle, Search, Filter, Sort, View Details.
 *   **Public Mirror (Read-Only):** `http://localhost:5010`
-    *   *Features:* Search, Filter, Sort, Advanced Search, View Details. All admin routes return 404.
+    *   *Features:* Search, Filter, Sort, Advanced Search, View Details, Stats, Shuffle. All admin routes return 404.
 
 ---
 
@@ -125,6 +125,18 @@ For books that pre-date ISBNs or are limited editions:
 1.  Go to Audit page.
 2.  Click **"No ISBN Exists"**.
 3.  The book is flagged in the database and removed from the Audit list.
+
+### The Import / Export Workflow
+Navigate to `/import` (or click **Import / Export** in Admin mode).
+
+**Exporting:** Click **Download CSV** to download your full library as `caliper_library.csv`. All fields are included, making it suitable for backups or migrating to a new instance.
+
+**Importing:**
+1.  Select a `.csv` file and click **Preview Import**.
+2.  Review the parsed rows before anything is saved. Books missing a title or author are shown in a separate Skipped Rows table with the reason.
+3.  Click **Import N Books** to confirm. All rows are inserted in a single transaction — if anything fails, nothing is written.
+
+The CSV format matches the export exactly. `read_status` values are case-sensitive: `Read`, `To Read`, `DNF`, `Reference`. Invalid values are imported as blank.
 
 ---
 
