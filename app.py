@@ -2,7 +2,10 @@ import sqlite3
 import requests # pyright: ignore[reportMissingModuleSource]
 import re
 import os
-from flask import Flask, render_template, request, redirect, url_for, abort, jsonify # pyright: ignore[reportMissingImports]
+import csv
+import io
+import json
+from flask import Flask, render_template, request, redirect, url_for, abort, jsonify, Response # pyright: ignore[reportMissingImports]
 
 app = Flask(__name__)
 
@@ -36,6 +39,50 @@ def clean_str(val):
     if not val: return None
     stripped = val.strip()
     return stripped if stripped else None
+
+VALID_READ_STATUSES = {'Read', 'To Read', 'DNF', 'Reference'}
+
+def _parse_import_row(row):
+    def clean_num(val, func):
+        v = (val or '').strip()
+        try:
+            return func(v) if v else None
+        except (ValueError, TypeError):
+            return None
+
+    def parse_bool(val):
+        v = (val or '').strip().lower()
+        return 1 if v in ('1', 'true', 'yes') else 0
+
+    title = clean_str(row.get('title', ''))
+    author = clean_str(row.get('author', ''))
+
+    if not title or not author:
+        return None, 'Missing title or author'
+
+    read_status = clean_str(row.get('read_status', '')) or None
+    if read_status and read_status not in VALID_READ_STATUSES:
+        read_status = None
+
+    return {
+        'title': title,
+        'author': author,
+        'isbn': clean_str(row.get('isbn', '')),
+        'publisher': clean_str(row.get('publisher', '')),
+        'binding': clean_str(row.get('binding', '')),
+        'read_status': read_status,
+        'is_signed': parse_bool(row.get('is_signed', '0')),
+        'page_count': clean_num(row.get('page_count', ''), int),
+        'published_year': clean_num(row.get('published_year', ''), int),
+        'series_title': clean_str(row.get('series_title', '')),
+        'series_number': clean_num(row.get('series_number', ''), float),
+        'height': clean_num(row.get('height', ''), float),
+        'width': clean_num(row.get('width', ''), float),
+        'weight': clean_num(row.get('weight', ''), float),
+        'notes': clean_str(row.get('notes', '')),
+        'cover_url': clean_str(row.get('cover_url', '')),
+        'cover_filename': clean_str(row.get('cover_filename', '')),
+    }, None
 
 # --- ROUTES ---
 
@@ -622,6 +669,110 @@ def stats_page():
         format_counts=format_counts,
         unfinished_series=[dict(s) for s in unfinished_series]
     )
+
+if not IS_READ_ONLY:
+    @app.route('/export')
+    def export_books():
+        conn = get_db_connection()
+        books = conn.execute('''
+            SELECT title, author, isbn, publisher, binding, read_status, is_signed,
+                   page_count, published_year, series_title, series_number,
+                   height, width, weight, notes, cover_url, cover_filename
+            FROM books ORDER BY author ASC, title ASC
+        ''').fetchall()
+        conn.close()
+
+        fieldnames = ['title', 'author', 'isbn', 'publisher', 'binding', 'read_status',
+                      'is_signed', 'page_count', 'published_year', 'series_title',
+                      'series_number', 'height', 'width', 'weight', 'notes',
+                      'cover_url', 'cover_filename']
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
+        writer.writeheader()
+        for book in books:
+            writer.writerow(dict(book))
+
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=caliper_library.csv'}
+        )
+
+if not IS_READ_ONLY:
+    @app.route('/import', methods=('GET', 'POST'))
+    def import_books():
+        if request.method == 'POST':
+            file = request.files.get('csv_file')
+
+            if not file or not file.filename:
+                return render_template('import.html', mode='upload', error='No file selected.')
+
+            if not file.filename.lower().endswith('.csv'):
+                return render_template('import.html', mode='upload',
+                                       error=f'"{file.filename}" is not a CSV file. Only .csv files are supported.')
+
+            try:
+                stream = io.StringIO(file.stream.read().decode('utf-8-sig'))
+                reader = csv.DictReader(stream)
+
+                ready = []
+                skipped = []
+
+                for i, row in enumerate(reader, start=2):
+                    book, reason = _parse_import_row(row)
+                    if book:
+                        ready.append(book)
+                    else:
+                        skipped.append({
+                            'row': i,
+                            'title': (row.get('title') or '').strip() or '—',
+                            'author': (row.get('author') or '').strip() or '—',
+                            'reason': reason
+                        })
+
+            except Exception:
+                return render_template('import.html', mode='upload',
+                                       error='Could not parse the file. Make sure it is a valid CSV.')
+
+            if not ready and not skipped:
+                return render_template('import.html', mode='upload', error='The file appears to be empty.')
+
+            confirmed_data = json.dumps(ready)
+            return render_template('import.html', mode='preview',
+                                   ready=ready, skipped=skipped,
+                                   confirmed_data=confirmed_data)
+
+        imported = request.args.get('imported')
+        error = request.args.get('error')
+        return render_template('import.html', mode='upload', imported=imported, error=error)
+
+if not IS_READ_ONLY:
+    @app.route('/import/confirm', methods=('POST',))
+    def import_confirm():
+        try:
+            rows = json.loads(request.form.get('confirmed_data', '[]'))
+        except Exception:
+            return redirect(url_for('import_books', error='Invalid import data.'))
+
+        conn = get_db_connection()
+        try:
+            for book in rows:
+                conn.execute('''
+                    INSERT INTO books (title, author, isbn, publisher, binding, read_status,
+                        is_signed, page_count, published_year, series_title, series_number,
+                        height, width, weight, notes, cover_url, cover_filename)
+                    VALUES (:title, :author, :isbn, :publisher, :binding, :read_status,
+                            :is_signed, :page_count, :published_year, :series_title, :series_number,
+                            :height, :width, :weight, :notes, :cover_url, :cover_filename)
+                ''', book)
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            conn.close()
+            return redirect(url_for('import_books', error='Database error during import. No books were added.'))
+
+        conn.close()
+        return redirect(url_for('import_books', imported=len(rows)))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <title>{% if mode == 'preview' %}Import Preview{% else %}Import / Export{% endif %} — Caliper</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #161820;
+            --surface-alt: #1e2030;
+            --border: #2a2c35;
+            --border-dim: #1a1c24;
+            --text-primary: #c8c6be;
+            --text-secondary: #8a887e;
+            --text-muted: #6b6960;
+            --text-dim: #5a5c66;
+            --text-bright: #e8e6de;
+            --accent-dim: #0f6e56;
+            --teal: #1d9e75;
+            --blue: #378add;
+            --amber: #ba7517;
+            --red: #e24b4a;
+            --gray: #3a3c46;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 12px;
+            padding: 24px;
+            line-height: 1.5;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+            gap: 16px;
+        }
+
+        .header-left h1 {
+            font-size: 28px;
+            font-weight: 300;
+            color: var(--text-bright);
+            letter-spacing: 0.05em;
+            margin-bottom: 2px;
+        }
+
+        .header-left .subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            text-decoration: none;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+            display: inline-block;
+        }
+        .btn-ghost { background: var(--surface); color: var(--text-muted); }
+        .btn-ghost:hover { color: var(--text-primary); background: var(--surface-alt); }
+        .btn-accent { background: #0a1612; color: var(--teal); border-color: var(--accent-dim); }
+        .btn-accent:hover { background: #0d1f18; }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .card-header {
+            padding: 7px 14px;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            background: var(--surface-alt);
+        }
+
+        .card-body { padding: 16px 14px; }
+
+        .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .dot-teal { background: var(--teal); }
+        .dot-blue { background: var(--blue); }
+        .dot-red { background: var(--red); }
+
+        .banner {
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 14px;
+            font-size: 11px;
+        }
+        .banner-success { background: #0a1612; border: 1px solid var(--accent-dim); color: var(--teal); }
+        .banner-error { background: #1c0a0a; border: 1px solid #5a1a1a; color: var(--red); }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="file"] {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .col-ref {
+            margin-top: 14px;
+            padding: 10px 12px;
+            background: var(--surface-alt);
+            border: 1px solid var(--border-dim);
+            border-radius: 6px;
+            font-size: 10px;
+            color: var(--text-muted);
+            line-height: 1.9;
+        }
+        .col-ref .required { color: var(--text-secondary); }
+        .col-ref .note { color: var(--text-dim); }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th {
+            padding: 8px 14px;
+            text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            background: var(--surface-alt);
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-dim);
+            vertical-align: middle;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #1a1c26; }
+
+        .title-cell { color: var(--text-bright); font-weight: 500; }
+        .author-cell { color: var(--text-secondary); font-size: 11px; }
+        .dim-cell { color: var(--text-dim); font-size: 11px; }
+        .reason-cell { color: var(--red); font-size: 11px; }
+
+        .status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .summary-row {
+            display: flex;
+            gap: 0;
+            padding: 14px;
+        }
+
+        .summary-stat {
+            display: flex;
+            flex-direction: column;
+            padding-right: 20px;
+            margin-right: 20px;
+            border-right: 1px solid var(--border-dim);
+        }
+        .summary-stat:last-child { border-right: none; margin-right: 0; }
+        .summary-stat .num { font-size: 22px; font-weight: 300; color: var(--text-bright); }
+        .summary-stat .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+
+        .preview-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px;
+            background: var(--surface-alt);
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 14px; }
+            .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .form-row { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+
+{% if mode == 'preview' %}
+
+    <div class="header">
+        <div class="header-left">
+            <h1>Import Preview</h1>
+            <div class="subtitle">Caliper · Review Before Importing</div>
+        </div>
+        <div class="header-right">
+            <a href="/import" class="btn btn-ghost">← Cancel</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="dot dot-teal"></div>Summary</div>
+        <div class="summary-row">
+            <div class="summary-stat">
+                <div class="num">{{ ready | length }}</div>
+                <div class="lbl">Ready to Import</div>
+            </div>
+            {% if skipped %}
+            <div class="summary-stat">
+                <div class="num" style="color: var(--red);">{{ skipped | length }}</div>
+                <div class="lbl">Rows Skipped</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="POST" action="/import/confirm">
+        <input type="hidden" name="confirmed_data" value="{{ confirmed_data }}">
+
+        <div class="card">
+            <div class="card-header">
+                <div class="dot dot-teal"></div>Books to Import
+                <span style="color:var(--text-dim); font-weight:400; margin-left:4px;">({{ ready | length }})</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:35%">Title</th>
+                        <th style="width:22%">Author</th>
+                        <th>Binding</th>
+                        <th>Status</th>
+                        <th>Series</th>
+                        <th style="text-align:right">Year</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for book in ready %}
+                    <tr>
+                        <td class="title-cell">{{ book.title }}</td>
+                        <td class="author-cell">{{ book.author }}</td>
+                        <td class="dim-cell">{{ book.binding or '—' }}</td>
+                        <td class="dim-cell">
+                            {% if book.read_status %}
+                                <span class="status-dot" style="background:
+                                    {%- if book.read_status == 'Read' %}#1d9e75
+                                    {%- elif book.read_status == 'To Read' %}#378add
+                                    {%- elif book.read_status == 'DNF' %}#e24b4a
+                                    {%- elif book.read_status == 'Reference' %}#ba7517
+                                    {%- else %}#3a3c46{%- endif %}"></span>
+                                {{ book.read_status }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="dim-cell">
+                            {% if book.series_title %}
+                                {{ book.series_title }}{% if book.series_number %} #{{ book.series_number }}{% endif %}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="dim-cell" style="text-align:right">{{ book.published_year or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="preview-actions">
+                <button type="submit" class="btn btn-accent">
+                    Import {{ ready | length }} Book{{ 's' if ready | length != 1 else '' }}
+                </button>
+                <a href="/import" class="btn btn-ghost">Cancel</a>
+            </div>
+        </div>
+    </form>
+
+    {% if skipped %}
+    <div class="card">
+        <div class="card-header">
+            <div class="dot dot-red"></div>Skipped Rows
+            <span style="color:var(--text-dim); font-weight:400; margin-left:4px;">({{ skipped | length }})</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:60px">Row</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in skipped %}
+                <tr>
+                    <td class="dim-cell">{{ row.row }}</td>
+                    <td class="dim-cell">{{ row.title }}</td>
+                    <td class="dim-cell">{{ row.author }}</td>
+                    <td class="reason-cell">{{ row.reason }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+{% else %}
+
+    <div class="header">
+        <div class="header-left">
+            <h1>Import / Export</h1>
+            <div class="subtitle">Caliper · Data Transfer</div>
+        </div>
+        <div class="header-right">
+            <a href="/" class="btn btn-ghost">← Library</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="dot dot-teal"></div>Export Library</div>
+        <div class="card-body">
+            <p style="color: var(--text-secondary); margin-bottom: 12px;">Download your complete library as a CSV, including all fields.</p>
+            <a href="/export" class="btn btn-accent">↓ Download CSV</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="dot dot-blue"></div>Import Books</div>
+        <div class="card-body">
+            {% if error %}
+            <div class="banner banner-error">{{ error }}</div>
+            {% endif %}
+            {% if imported %}
+            <div class="banner banner-success">{{ imported }} book{{ 's' if imported | int != 1 else '' }} imported successfully.</div>
+            {% endif %}
+            <p style="color: var(--text-secondary); margin-bottom: 12px;">Upload a CSV to add books to your library. You'll see a preview before anything is saved.</p>
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-row">
+                    <input type="file" name="csv_file" accept=".csv">
+                    <button type="submit" class="btn btn-accent">Preview Import</button>
+                </div>
+            </form>
+            <div class="col-ref">
+                <span class="required">Required: title, author</span><br>
+                Optional: isbn · publisher · binding · read_status · is_signed · page_count · published_year · series_title · series_number · height · width · weight · notes · cover_url · cover_filename<br>
+                <span class="note">read_status must be exactly: Read · To Read · DNF · Reference &nbsp;(case-sensitive; invalid values are imported as blank)</span>
+            </div>
+        </div>
+    </div>
+
+{% endif %}
+
+</body>
+</html>

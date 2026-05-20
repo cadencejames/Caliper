@@ -34,6 +34,7 @@ def create_example_database():
             weight REAL,
             notes TEXT,
             cover_url TEXT,
+            cover_filename TEXT,
             read_status TEXT DEFAULT NULL,
             is_signed INTEGER DEFAULT 0,
             no_isbn INTEGER DEFAULT 0

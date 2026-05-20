@@ -29,6 +29,7 @@ Built with **Python (Flask)**, **SQLite**, and **Docker**.
 *   **Mobile Optimized:** Automatically switches from a Data Table view (Desktop) to a Card view (Mobile).
 *   **Smart Linking:** Automatically detects and links duplicate copies (e.g., Hardcover vs. Paperback) on the detail page.
 *   **Reading Status:** Track Read, TBR, DNF, and Signed copies with visual badges.
+*   **Data Import/Export:** One-click CSV export of your full library. CSV import with a preview/confirm step — review all rows before anything is saved, with skipped rows shown with reasons.
 
 ---
 
@@ -46,7 +47,9 @@ Built with **Python (Flask)**, **SQLite**, and **Docker**.
     │   ├── book_detail.html    # Single book view
     │   ├── add_book.html       # Add & Edit form
     │   ├── audit.html          # Data hygiene dashboard
-    │   └── search.html         # Advanced field/operator/value query
+    │   ├── search.html         # Advanced field/operator/value query
+    │   ├── stats.html          # Collection analytics dashboard
+    │   └── import.html         # CSV import/export
     ├── static/                 # Static assets
     │   ├── favicon.svg         # Site favicon
     │   └── covers/             # Locally hosted cover images
@@ -125,10 +128,11 @@ For books that pre-date ISBNs or are limited editions:
 
 ## 🛣️ Roadmap & Versioning
 
-**Current Version:** v2.0.0
+**Current Version:** v2.1.0
 
 ### Changelog
 
+**v2.1.0** - Admin-only CSV import/export. Export downloads a full library CSV including all fields. Import uses a preview/confirm flow: parse the file, review all rows before anything is committed, with skipped rows shown with reasons. Handles Excel BOM encoding, rejects non-CSV files, and wraps all inserts in a single transaction (rolls back on failure). Also adds `cover_filename` to the database schema.  
 **v2.0.0** - Stats Dashboard (`/stats`) with Chart.js visualizations: reading status distribution, format breakdown, unfinished series tracker, TBR page mountain, library weight, shelf height, signed copies, DNF rate, oldest and longest book highlights. Also adds input sanitization (whitespace trimming) on all Add/Edit book fields.  
 **v1.3.0** - Advanced Search page (`/search`) with field/operator/value query builder across all books. Available in both Admin and Public modes. Also adds dynamic filter to the Physical Audit tab.  
 **v1.2.1** - Add cover_filename field on Add and Edit forms in the Admin view.  
@@ -149,7 +153,7 @@ For books that pre-date ISBNs or are limited editions:
 - [x] **Stats Dashboard:** Visual charts and metrics including reading status distribution, library weight, format breakdown, TBR page mountain, DNF rate, longest/oldest book, signed copies count, total shelf height, and unfinished series.
 - [ ] **Series Navigation:** Dedicated view to list books in a series order (e.g. 1, 2, 3) to identify gaps.
 - [ ] **Random Picker:** A "Shuffle" button to help pick the next read from the TBR pile.
-- [ ] **Data Export:** One-click CSV/DB backup from the Admin interface.
+- [x] **Data Import/Export:** CSV export and import with a preview/confirm flow. Admin-only.
 
 ### Phase 3: Architecture & Enrichment (Planned)
 - [ ] **Author Normalization:** Migration to a relational `Authors` table to better track metadata (Gender, Nationality).
@@ -176,7 +180,7 @@ When deploying with Docker, the `static/covers/` directory is mounted as a volum
 
 This app uses Environment Variables to toggle security modes.
 *   `APP_MODE=ADMIN` (Default): Enables all routes.
-*   `APP_MODE=PUBLIC`: Disables `/add`, `/edit`, `/delete`, and `/audit` at the code level.
+*   `APP_MODE=PUBLIC`: Disables `/add`, `/edit`, `/delete`, `/audit`, `/import`, and `/export` at the code level.
 
 This logic ensures that even if the public site is exposed to the internet, modification of the database is impossible via the web interface.
 
