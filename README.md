@@ -171,7 +171,6 @@ The CSV format matches the export exactly. `read_status` values are case-sensiti
 
 ### Phase 3: Architecture & Enrichment (Planned)
 - [ ] **Barcode Scanning:** Native camera integration to add books by scanning physical barcodes.
-- [ ] **Advanced API Fallbacks:** Fallback to Google Books API if Open Library data is missing.
 - [ ] **Tagging System:** Custom user-defined tags for custom collections.
 
 ### Phase 4: Relational Data (Planned)
