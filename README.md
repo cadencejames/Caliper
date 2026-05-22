@@ -31,6 +31,7 @@ Built with **Python (Flask)**, **SQLite**, and **Docker**.
 *   **Reading Status:** Track Read, TBR, DNF, and Signed copies with visual badges.
 *   **Data Import/Export:** One-click CSV export of your full library. CSV import with a preview/confirm step — review all rows before anything is saved, with skipped rows shown with reasons.
 *   **TBR Shuffle:** A "Shuffle" button picks a random book from your To Read pile and presents it on a reveal page with cover art, series info, and the option to pick again.
+*   **Tagging System:** Add custom tags to any book via an inline editor with autocomplete. Tags are displayed as badges on the detail page and are clickable to filter the full library. Filter the index by tag via the tag dropdown.
 
 ---
 
@@ -142,10 +143,11 @@ The CSV format matches the export exactly. `read_status` values are case-sensiti
 
 ## 🛣️ Roadmap & Versioning
 
-**Current Version:** v2.2.0
+**Current Version:** v2.3.0
 
 ### Changelog
 
+**v2.3.0** - Tagging System: custom user-defined tags stored in a relational `tags` table. Inline tag editor on the book detail page with autocomplete typeahead — select existing tags or create new ones on the fly. Tags display as blue badges on the detail page and are clickable to filter the library. Tag filter dropdown added to the index page.  
 **v2.2.0** - TBR Shuffle (`/random`): picks a random To Read book and presents it on a reveal page with cover art, title, author, series, and format. Includes "Let's Read It" and "Pick Again" buttons. Empty TBR shows a friendly message.  
 **v2.1.0** - Admin-only CSV import/export. Export downloads a full library CSV including all fields. Import uses a preview/confirm flow: parse the file, review all rows before anything is committed, with skipped rows shown with reasons. Handles Excel BOM encoding, rejects non-CSV files, and wraps all inserts in a single transaction (rolls back on failure). Also adds `cover_filename` to the database schema.  
 **v2.0.0** - Stats Dashboard (`/stats`) with Chart.js visualizations: reading status distribution, format breakdown, unfinished series tracker, TBR page mountain, library weight, shelf height, signed copies, DNF rate, oldest and longest book highlights. Also adds input sanitization (whitespace trimming) on all Add/Edit book fields.  
@@ -169,9 +171,10 @@ The CSV format matches the export exactly. `read_status` values are case-sensiti
 - [x] **Random Picker:** A "Shuffle" button presents a random TBR book on a reveal page with cover art and pick-again option.
 - [x] **Data Import/Export:** CSV export and import with a preview/confirm flow. Admin-only.
 
-### Phase 3: Architecture & Enrichment (Planned)
+### Phase 3: Architecture & Enrichment (In Progress)
 - [ ] **Barcode Scanning:** Native camera integration to add books by scanning physical barcodes.
-- [ ] **Tagging System:** Custom user-defined tags for custom collections.
+- [x] **Tagging System:** Custom user-defined tags with inline editor, autocomplete, clickable badge filtering, and index filter dropdown.
+- [ ] **Tag Management:** Admin page to view all tags, rename, merge duplicates, and delete unused tags.
 
 ### Phase 4: Relational Data (Planned)
 - [ ] **Author Table:** Relational `Authors` table with enriched metadata (nationality, gender, birth year) sourced via API with manual override.

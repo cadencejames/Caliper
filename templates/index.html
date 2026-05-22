@@ -271,6 +271,13 @@
                 <option value="signed" {% if current_filter == 'signed' %}selected{% endif %}>Show Signed Only</option>
             </select>
 
+            <select class="sort-select" id="tagSelect" onchange="updateParams()">
+                <option value="" {% if not current_tag %}selected{% endif %}>Tag: All</option>
+                {% for tag in all_tags %}
+                <option value="{{ tag['name'] }}" {% if current_tag == tag['name'] %}selected{% endif %}>{{ tag['name'] }}</option>
+                {% endfor %}
+            </select>
+
             <select class="sort-select" id="sortSelect" onchange="updateParams()">
                 <option value="author" {% if current_sort == 'author' %}selected{% endif %}>Author (A–Z)</option>
                 <option value="title" {% if current_sort == 'title' %}selected{% endif %}>Title (A–Z)</option>
@@ -349,9 +356,12 @@
         function updateParams() {
             const filterVal = document.getElementById('filterSelect').value;
             const sortVal = document.getElementById('sortSelect').value;
+            const tagVal = document.getElementById('tagSelect').value;
             sessionStorage.removeItem('scrollPos');
             sessionStorage.removeItem('scrollParams');
-            window.location.href = `/?filter=${filterVal}&sort=${sortVal}`;
+            const params = new URLSearchParams({filter: filterVal, sort: sortVal});
+            if (tagVal) params.set('tag', tagVal);
+            window.location.href = '/?' + params.toString();
         }
 
         document.addEventListener("DOMContentLoaded", function() {

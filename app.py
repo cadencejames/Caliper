@@ -29,6 +29,26 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def init_db():
+    conn = get_db_connection()
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS tags (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL
+        )
+    ''')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS book_tags (
+            book_id INTEGER NOT NULL,
+            tag_id INTEGER NOT NULL,
+            PRIMARY KEY (book_id, tag_id),
+            FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE,
+            FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
 def extract_year(date_str):
     if not date_str: return None
     match = re.search(r'\d{4}', str(date_str))
@@ -93,36 +113,43 @@ def index():
     # URL Parameters
     sort_param = request.args.get('sort', 'author')
     filter_param = request.args.get('filter', 'all')
+    tag_param = request.args.get('tag', '')
 
     # 1. Base Query
     base_query = """
-        SELECT 
+        SELECT
             MIN(id) as id,
-            title, 
-            author, 
-            series_title, 
-            series_number, 
+            title,
+            author,
+            series_title,
+            series_number,
             MIN(published_year) as published_year,
             COUNT(*) as copy_count,
             GROUP_CONCAT(binding, ',') as all_bindings,
             read_status -- We need this for filtering logic
-        FROM books 
+        FROM books
     """
 
-    # 2. Add Filter Clause
-    where_clause = ""
+    # 2. Build Filter Clause
+    where_parts = []
     params = []
-    
+
     if filter_param == 'read':
-        where_clause = "WHERE read_status = 'Read'"
+        where_parts.append("read_status = 'Read'")
     elif filter_param == 'tbr':
-        where_clause = "WHERE read_status = 'To Read'"
+        where_parts.append("read_status = 'To Read'")
     elif filter_param == 'dnf':
-        where_clause = "WHERE read_status = 'DNF'"
+        where_parts.append("read_status = 'DNF'")
     elif filter_param == 'reference':
-        where_clause = "WHERE read_status = 'Reference'"
+        where_parts.append("read_status = 'Reference'")
     elif filter_param == 'signed':
-        where_clause = "WHERE is_signed = 1"
+        where_parts.append("is_signed = 1")
+
+    if tag_param:
+        where_parts.append("id IN (SELECT book_id FROM book_tags JOIN tags ON tags.id = book_tags.tag_id WHERE tags.name = ?)")
+        params.append(tag_param)
+
+    where_clause = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
 
     # 3. Add Sort Clause
     if sort_param == 'newest':
@@ -153,6 +180,7 @@ def index():
     final_query = f"{base_query} {where_clause} GROUP BY title, author {order_clause}"
     
     books_raw = conn.execute(final_query, params).fetchall()
+    all_tags = conn.execute('SELECT name FROM tags ORDER BY name').fetchall()
     conn.close()
 
     # Process Bindings
@@ -168,8 +196,9 @@ def index():
         books.append(book)
 
     total_physical_books = sum(book['copy_count'] for book in books)
-    # Pass both sort and filter params back to template
-    return render_template('index.html', books=books, current_sort=sort_param, current_filter=filter_param, total_count=total_physical_books)
+    return render_template('index.html', books=books, current_sort=sort_param,
+                           current_filter=filter_param, current_tag=tag_param,
+                           all_tags=all_tags, total_count=total_physical_books)
 
 @app.route('/book/<int:book_id>')
 def book_detail(book_id):
@@ -181,11 +210,18 @@ def book_detail(book_id):
         abort(404)
         
     siblings = conn.execute('''
-        SELECT id, binding, published_year, notes 
-        FROM books 
+        SELECT id, binding, published_year, notes
+        FROM books
         WHERE title = ? AND author = ? AND id != ?
         ORDER BY id ASC
     ''', (book['title'], book['author'], book_id)).fetchall()
+
+    book_tags = conn.execute('''
+        SELECT t.id, t.name FROM tags t
+        JOIN book_tags bt ON bt.tag_id = t.id
+        WHERE bt.book_id = ?
+        ORDER BY t.name
+    ''', (book_id,)).fetchall()
 
     conn.close()
 
@@ -199,7 +235,8 @@ def book_detail(book_id):
     else:
         book['resolved_cover'] = None
 
-    return render_template('book_detail.html', book=book, siblings=siblings)
+    return render_template('book_detail.html', book=book, siblings=siblings,
+                           book_tags=[dict(t) for t in book_tags])
 
 @app.route('/search')
 def search_page():
@@ -476,6 +513,38 @@ def lookup_isbn():
         pass
     
     return jsonify({'found': False})
+
+@app.route('/api/tags')
+def get_all_tags():
+    conn = get_db_connection()
+    tags = conn.execute('SELECT id, name FROM tags ORDER BY name').fetchall()
+    conn.close()
+    return jsonify([dict(t) for t in tags])
+
+@app.route('/api/book/<int:book_id>/tags', methods=['POST'])
+def add_book_tag(book_id):
+    if IS_READ_ONLY:
+        abort(404)
+    name = ((request.get_json() or {}).get('name') or '').strip()
+    if not name:
+        return jsonify({'error': 'Tag name required'}), 400
+    conn = get_db_connection()
+    conn.execute('INSERT OR IGNORE INTO tags (name) VALUES (?)', (name,))
+    tag = conn.execute('SELECT id FROM tags WHERE name = ?', (name,)).fetchone()
+    conn.execute('INSERT OR IGNORE INTO book_tags (book_id, tag_id) VALUES (?, ?)', (book_id, tag['id']))
+    conn.commit()
+    conn.close()
+    return jsonify({'id': tag['id'], 'name': name})
+
+@app.route('/api/book/<int:book_id>/tags/<int:tag_id>', methods=['DELETE'])
+def remove_book_tag(book_id, tag_id):
+    if IS_READ_ONLY:
+        abort(404)
+    conn = get_db_connection()
+    conn.execute('DELETE FROM book_tags WHERE book_id = ? AND tag_id = ?', (book_id, tag_id))
+    conn.commit()
+    conn.close()
+    return jsonify({'ok': True})
 
 if not IS_READ_ONLY:
     @app.route('/audit')
@@ -794,6 +863,8 @@ if not IS_READ_ONLY:
 
         conn.close()
         return redirect(url_for('import_books', imported=len(rows)))
+
+init_db()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

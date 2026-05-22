@@ -159,6 +159,70 @@
         .badge-dnf { background: #1a0808; color: var(--red); border: 1px solid #7a1414; }
         .badge-ref { background: #222; color: var(--text-dim); border: 1px solid #444; }
         .badge-signed { background: #1e1800; color: var(--gold); border: 1px solid #665200; }
+        .badge-tag { background: #0d1a2e; color: var(--blue); border: 1px solid #1a3a5c; }
+
+        /* ── Tag Editor ── */
+        .tag-editor { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+        .tag-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .tag-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #0d1a2e;
+            color: var(--blue);
+            border: 1px solid #1a3a5c;
+            border-radius: 3px;
+            font-size: 9px;
+            padding: 2px 8px;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .tag-chip-remove {
+            background: none;
+            border: none;
+            color: var(--blue);
+            cursor: pointer;
+            font-size: 11px;
+            padding: 0;
+            line-height: 1;
+            opacity: 0.6;
+        }
+        .tag-chip-remove:hover { opacity: 1; }
+        .tag-input-wrap { position: relative; }
+        .tag-input {
+            width: 100%;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+            outline: none;
+        }
+        .tag-input:focus { border-color: var(--blue); }
+        .tag-autocomplete {
+            position: absolute;
+            top: calc(100% + 2px);
+            left: 0; right: 0;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            z-index: 10;
+            display: none;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+        .tag-autocomplete.open { display: block; }
+        .tag-suggestion {
+            padding: 6px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+        .tag-suggestion:hover, .tag-suggestion.active { background: #0d1a2e; color: var(--blue); }
+        .tag-hint { font-size: 10px; color: var(--text-muted); }
 
         .series-badge {
             display: inline-block;
@@ -274,6 +338,9 @@
                         {% if book['is_signed'] %}
                             <span class="badge badge-signed">★ Signed</span>
                         {% endif %}
+                        {% for tag in book_tags %}
+                            <a href="/?tag={{ tag.name | urlencode }}" class="badge badge-tag" style="text-decoration:none">{{ tag.name }}</a>
+                        {% endfor %}
                     </div>
                     {% if book['series_title'] %}
                         <div class="series-badge">
@@ -363,8 +430,122 @@
             </div>
             {% endif %}
 
+            <!-- Tag editor card (admin only) -->
+            {% if not is_read_only %}
+            <div class="card">
+                <div class="card-header">
+                    <div class="dot dot-blue"></div>
+                    Tags
+                </div>
+                <div class="tag-editor">
+                    <div class="tag-chips" id="tagChips">
+                        {% for tag in book_tags %}
+                        <span class="tag-chip" data-tag-id="{{ tag.id }}">
+                            {{ tag.name }}
+                            <button class="tag-chip-remove" onclick="removeTag({{ tag.id }}, this)">×</button>
+                        </span>
+                        {% endfor %}
+                    </div>
+                    <div class="tag-input-wrap">
+                        <input type="text" class="tag-input" id="tagInput" placeholder="Add a tag…" autocomplete="off">
+                        <div class="tag-autocomplete" id="tagAutocomplete"></div>
+                    </div>
+                    <div class="tag-hint">Type to search existing tags or press Enter to create a new one.</div>
+                </div>
+            </div>
+            {% endif %}
+
         </div>
     </div>
+
+    <script>
+        const BOOK_ID = {{ book['id'] }};
+        let allTags = [];
+        let activeIndex = -1;
+
+        fetch('/api/tags').then(r => r.json()).then(tags => { allTags = tags; });
+
+        const input = document.getElementById('tagInput');
+        const dropdown = document.getElementById('tagAutocomplete');
+        const chips = document.getElementById('tagChips');
+
+        function currentTagIds() {
+            return [...chips.querySelectorAll('.tag-chip')].map(c => parseInt(c.dataset.tagId));
+        }
+
+        function renderDropdown(query) {
+            const existing = currentTagIds();
+            const matches = allTags.filter(t =>
+                t.name.toLowerCase().includes(query.toLowerCase()) && !existing.includes(t.id)
+            );
+            dropdown.innerHTML = '';
+            activeIndex = -1;
+            if (!matches.length) { dropdown.classList.remove('open'); return; }
+            matches.forEach((t, i) => {
+                const div = document.createElement('div');
+                div.className = 'tag-suggestion';
+                div.textContent = t.name;
+                div.addEventListener('mousedown', e => { e.preventDefault(); applyTag(t.name); });
+                dropdown.appendChild(div);
+            });
+            dropdown.classList.add('open');
+        }
+
+        function applyTag(name) {
+            name = name.trim();
+            if (!name) return;
+            fetch(`/api/book/${BOOK_ID}/tags`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name})
+            })
+            .then(r => r.json())
+            .then(tag => {
+                if (tag.error) return;
+                if (currentTagIds().includes(tag.id)) { input.value = ''; dropdown.classList.remove('open'); return; }
+                const chip = document.createElement('span');
+                chip.className = 'tag-chip';
+                chip.dataset.tagId = tag.id;
+                chip.innerHTML = `${tag.name} <button class="tag-chip-remove" onclick="removeTag(${tag.id}, this)">×</button>`;
+                chips.appendChild(chip);
+                if (!allTags.find(t => t.id === tag.id)) allTags.push(tag);
+                input.value = '';
+                dropdown.classList.remove('open');
+            });
+        }
+
+        function removeTag(tagId, btn) {
+            fetch(`/api/book/${BOOK_ID}/tags/${tagId}`, {method: 'DELETE'})
+            .then(r => r.json())
+            .then(() => { btn.closest('.tag-chip').remove(); });
+        }
+
+        input.addEventListener('input', () => {
+            if (input.value.trim()) renderDropdown(input.value);
+            else dropdown.classList.remove('open');
+        });
+
+        input.addEventListener('keydown', e => {
+            const items = dropdown.querySelectorAll('.tag-suggestion');
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeIndex = Math.min(activeIndex + 1, items.length - 1);
+                items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeIndex = Math.max(activeIndex - 1, -1);
+                items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (activeIndex >= 0 && items[activeIndex]) applyTag(items[activeIndex].textContent);
+                else applyTag(input.value);
+            } else if (e.key === 'Escape') {
+                dropdown.classList.remove('open');
+            }
+        });
+
+        input.addEventListener('blur', () => { setTimeout(() => dropdown.classList.remove('open'), 150); });
+    </script>
 
 </body>
 </html>
