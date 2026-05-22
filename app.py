@@ -31,6 +31,12 @@ def get_db_connection():
 
 def init_db():
     conn = get_db_connection()
+    try:
+        conn.execute('ALTER TABLE books ADD COLUMN genre TEXT')
+        conn.commit()
+    except Exception:
+        pass
+
     conn.execute('''
         CREATE TABLE IF NOT EXISTS tags (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -102,6 +108,7 @@ def _parse_import_row(row):
         'notes': clean_str(row.get('notes', '')),
         'cover_url': clean_str(row.get('cover_url', '')),
         'cover_filename': clean_str(row.get('cover_filename', '')),
+        'genre': clean_str(row.get('genre', '')),
     }, None
 
 # --- ROUTES ---
@@ -114,6 +121,7 @@ def index():
     sort_param = request.args.get('sort', 'author')
     filter_param = request.args.get('filter', 'all')
     tag_param = request.args.get('tag', '')
+    genre_param = request.args.get('genre', '')
 
     # 1. Base Query
     base_query = """
@@ -149,6 +157,10 @@ def index():
         where_parts.append("id IN (SELECT book_id FROM book_tags JOIN tags ON tags.id = book_tags.tag_id WHERE tags.name = ?)")
         params.append(tag_param)
 
+    if genre_param:
+        where_parts.append("genre = ?")
+        params.append(genre_param)
+
     where_clause = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
 
     # 3. Add Sort Clause
@@ -181,6 +193,7 @@ def index():
     
     books_raw = conn.execute(final_query, params).fetchall()
     all_tags = conn.execute('SELECT name FROM tags ORDER BY name').fetchall()
+    all_genres = conn.execute('SELECT DISTINCT genre FROM books WHERE genre IS NOT NULL AND genre != "" ORDER BY genre').fetchall()
     conn.close()
 
     # Process Bindings
@@ -198,7 +211,8 @@ def index():
     total_physical_books = sum(book['copy_count'] for book in books)
     return render_template('index.html', books=books, current_sort=sort_param,
                            current_filter=filter_param, current_tag=tag_param,
-                           all_tags=all_tags, total_count=total_physical_books)
+                           current_genre=genre_param, all_tags=all_tags,
+                           all_genres=all_genres, total_count=total_physical_books)
 
 @app.route('/book/<int:book_id>')
 def book_detail(book_id):
@@ -240,7 +254,7 @@ def book_detail(book_id):
 
 @app.route('/search')
 def search_page():
-    ALLOWED_FIELDS = {'height', 'width', 'weight', 'title', 'author', 'binding'}
+    ALLOWED_FIELDS = {'height', 'width', 'weight', 'title', 'author', 'binding', 'genre'}
     ALLOWED_OPERATORS = {
         'equals', 'not_equals', 'less_than', 'greater_than', 'lte', 'gte',
         'starts_with', 'contains', 'is_null', 'is_not_null'
@@ -334,7 +348,8 @@ if not IS_READ_ONLY:
                 'weight': clean_num(request.form.get('weight'), float),
                 'notes': clean_str(request.form.get('notes')),
                 'cover_url': clean_str(request.form.get('cover_url')),
-                'cover_filename': clean_str(request.form.get('cover_filename'))
+                'cover_filename': clean_str(request.form.get('cover_filename')),
+                'genre': clean_str(request.form.get('genre')),
             }
 
             conn = get_db_connection()
@@ -342,10 +357,10 @@ if not IS_READ_ONLY:
             cur.execute('''
                 INSERT INTO books (title, author, isbn, publisher, binding, read_status, is_signed,
                                 page_count, published_year, series_title, series_number,
-                                height, width, weight, notes, cover_url, cover_filename)
+                                height, width, weight, notes, cover_url, cover_filename, genre)
                 VALUES (:title, :author, :isbn, :publisher, :binding, :read_status, :is_signed,
                         :page_count, :published_year, :series_title, :series_number,
-                        :height, :width, :weight, :notes, :cover_url, :cover_filename)
+                        :height, :width, :weight, :notes, :cover_url, :cover_filename, :genre)
             ''', book_data)
             new_id = cur.lastrowid
 
@@ -405,6 +420,7 @@ if not IS_READ_ONLY:
                 'notes': clean_str(request.form.get('notes')),
                 'cover_url': clean_str(request.form.get('cover_url')),
                 'cover_filename': clean_str(request.form.get('cover_filename')),
+                'genre': clean_str(request.form.get('genre')),
                 'id': book_id
             }
 
@@ -415,7 +431,7 @@ if not IS_READ_ONLY:
                     published_year = :published_year, series_title = :series_title,
                     series_number = :series_number, height = :height, width = :width,
                     weight = :weight, notes = :notes, cover_url = :cover_url,
-                    cover_filename = :cover_filename
+                    cover_filename = :cover_filename, genre = :genre
                 WHERE id = :id
             ''', book_data)
 
@@ -559,7 +575,7 @@ if not IS_READ_ONLY:
             ORDER BY author ASC, title ASC
         ''').fetchall()
 
-        ALLOWED_FIELDS = {'height', 'width', 'weight', 'title', 'author', 'binding'}
+        ALLOWED_FIELDS = {'height', 'width', 'weight', 'title', 'author', 'binding', 'genre'}
         ALLOWED_OPERATORS = {
             'equals', 'not_equals', 'less_than', 'greater_than', 'lte', 'gte',
             'starts_with', 'contains', 'is_null', 'is_not_null'
@@ -775,7 +791,7 @@ if not IS_READ_ONLY:
         fieldnames = ['title', 'author', 'isbn', 'publisher', 'binding', 'read_status',
                       'is_signed', 'page_count', 'published_year', 'series_title',
                       'series_number', 'height', 'width', 'weight', 'notes',
-                      'cover_url', 'cover_filename']
+                      'cover_url', 'cover_filename', 'genre']
         output = io.StringIO()
         writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
         writer.writeheader()
@@ -850,10 +866,10 @@ if not IS_READ_ONLY:
                 conn.execute('''
                     INSERT INTO books (title, author, isbn, publisher, binding, read_status,
                         is_signed, page_count, published_year, series_title, series_number,
-                        height, width, weight, notes, cover_url, cover_filename)
+                        height, width, weight, notes, cover_url, cover_filename, genre)
                     VALUES (:title, :author, :isbn, :publisher, :binding, :read_status,
                             :is_signed, :page_count, :published_year, :series_title, :series_number,
-                            :height, :width, :weight, :notes, :cover_url, :cover_filename)
+                            :height, :width, :weight, :notes, :cover_url, :cover_filename, :genre)
                 ''', book)
             conn.commit()
         except Exception:

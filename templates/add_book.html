@@ -255,6 +255,12 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
+                        <label>Genre</label>
+                        <input type="text" id="genre" name="genre" placeholder="e.g. Fantasy, Literary Fiction" value="{{ book['genre'] if book and book['genre'] else '' }}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label>Format</label>
                         <select id="binding" name="binding">
                             <option value="Paperback" {% if book and book['binding'] == 'Paperback' %}selected{% endif %}>Paperback</option>

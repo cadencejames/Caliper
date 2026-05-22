@@ -154,6 +154,7 @@
             text-transform: uppercase;
             font-weight: 500;
         }
+        .badge-genre { background: #1a1100; color: var(--amber); border: 1px solid #7a4a00; }
         .badge-read { background: var(--teal-bg); color: var(--teal); border: 1px solid var(--teal-border); }
         .badge-tbr { background: var(--surface-alt); color: var(--text-dim); border: 1px solid var(--border); }
         .badge-dnf { background: #1a0808; color: var(--red); border: 1px solid #7a1414; }
@@ -326,6 +327,9 @@
                     <div class="book-title">{{ book['title'] }}</div>
                     <div class="book-author">{{ book['author'] }}</div>
                     <div class="badges-row">
+                        {% if book['genre'] %}
+                            <span class="badge badge-genre">{{ book['genre'] }}</span>
+                        {% endif %}
                         {% if book['read_status'] == 'Read' %}
                             <span class="badge badge-read">Read</span>
                         {% elif book['read_status'] == 'DNF' %}
@@ -353,6 +357,11 @@
                     <div class="row-dot" style="background:var(--teal)"></div>
                     <div class="row-label">Format</div>
                     <div class="row-value">{{ book['binding'] }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="row-dot" style="background:var(--amber)"></div>
+                    <div class="row-label">Genre</div>
+                    <div class="row-value">{{ book['genre'] or '-' }}</div>
                 </div>
                 <div class="info-row">
                     <div class="row-dot" style="background:var(--blue)"></div>

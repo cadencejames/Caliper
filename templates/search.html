@@ -274,6 +274,7 @@
             <option value="title"   {% if filter_field == 'title'   %}selected{% endif %}>Title</option>
             <option value="author"  {% if filter_field == 'author'  %}selected{% endif %}>Author</option>
             <option value="binding" {% if filter_field == 'binding' %}selected{% endif %}>Binding</option>
+            <option value="genre"   {% if filter_field == 'genre'   %}selected{% endif %}>Genre</option>
         </select>
         <select name="operator" id="filter-operator" class="filter-select" onchange="toggleValueInput()">
             <option value="equals"       {% if filter_operator == 'equals'       %}selected{% endif %}>equals</option>

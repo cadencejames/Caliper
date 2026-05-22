@@ -271,6 +271,13 @@
                 <option value="signed" {% if current_filter == 'signed' %}selected{% endif %}>Show Signed Only</option>
             </select>
 
+            <select class="sort-select" id="genreSelect" onchange="updateParams()">
+                <option value="" {% if not current_genre %}selected{% endif %}>Genre: All</option>
+                {% for genre in all_genres %}
+                <option value="{{ genre['genre'] }}" {% if current_genre == genre['genre'] %}selected{% endif %}>{{ genre['genre'] }}</option>
+                {% endfor %}
+            </select>
+
             <select class="sort-select" id="tagSelect" onchange="updateParams()">
                 <option value="" {% if not current_tag %}selected{% endif %}>Tag: All</option>
                 {% for tag in all_tags %}
@@ -357,10 +364,12 @@
             const filterVal = document.getElementById('filterSelect').value;
             const sortVal = document.getElementById('sortSelect').value;
             const tagVal = document.getElementById('tagSelect').value;
+            const genreVal = document.getElementById('genreSelect').value;
             sessionStorage.removeItem('scrollPos');
             sessionStorage.removeItem('scrollParams');
             const params = new URLSearchParams({filter: filterVal, sort: sortVal});
             if (tagVal) params.set('tag', tagVal);
+            if (genreVal) params.set('genre', genreVal);
             window.location.href = '/?' + params.toString();
         }
 
