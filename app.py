@@ -537,6 +537,67 @@ def get_all_tags():
     conn.close()
     return jsonify([dict(t) for t in tags])
 
+@app.route('/tags')
+def tag_management():
+    if IS_READ_ONLY:
+        abort(404)
+    conn = get_db_connection()
+    tags = conn.execute('''
+        SELECT t.id, t.name, COUNT(bt.book_id) as book_count
+        FROM tags t
+        LEFT JOIN book_tags bt ON bt.tag_id = t.id
+        GROUP BY t.id
+        ORDER BY t.name
+    ''').fetchall()
+    conn.close()
+    return render_template('tags.html', tags=[dict(t) for t in tags])
+
+@app.route('/api/tags/<int:tag_id>/rename', methods=['POST'])
+def rename_tag(tag_id):
+    if IS_READ_ONLY:
+        abort(404)
+    name = ((request.get_json() or {}).get('name') or '').strip()
+    if not name:
+        return jsonify({'error': 'Name required'}), 400
+    conn = get_db_connection()
+    try:
+        conn.execute('UPDATE tags SET name = ? WHERE id = ?', (name, tag_id))
+        conn.commit()
+    except Exception:
+        conn.close()
+        return jsonify({'error': 'A tag with that name already exists'}), 409
+    conn.close()
+    return jsonify({'ok': True, 'name': name})
+
+@app.route('/api/tags/<int:tag_id>', methods=['DELETE'])
+def delete_tag(tag_id):
+    if IS_READ_ONLY:
+        abort(404)
+    conn = get_db_connection()
+    conn.execute('DELETE FROM tags WHERE id = ?', (tag_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({'ok': True})
+
+@app.route('/api/tags/merge', methods=['POST'])
+def merge_tags():
+    if IS_READ_ONLY:
+        abort(404)
+    data = request.get_json() or {}
+    source_id = data.get('source_id')
+    target_id = data.get('target_id')
+    if not source_id or not target_id or source_id == target_id:
+        return jsonify({'error': 'Invalid source or target'}), 400
+    conn = get_db_connection()
+    conn.execute('''
+        INSERT OR IGNORE INTO book_tags (book_id, tag_id)
+        SELECT book_id, ? FROM book_tags WHERE tag_id = ?
+    ''', (target_id, source_id))
+    conn.execute('DELETE FROM tags WHERE id = ?', (source_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({'ok': True})
+
 @app.route('/api/book/<int:book_id>/tags', methods=['POST'])
 def add_book_tag(book_id):
     if IS_READ_ONLY:

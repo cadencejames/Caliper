@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <title>Tag Management — Caliper</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #161820;
+            --surface-alt: #1e2030;
+            --border: #2a2c35;
+            --border-dim: #1a1c24;
+            --text-primary: #c8c6be;
+            --text-secondary: #8a887e;
+            --text-muted: #6b6960;
+            --text-dim: #5a5c66;
+            --text-bright: #e8e6de;
+            --teal: #1d9e75;
+            --teal-bg: #0a1612;
+            --teal-border: #0f6e56;
+            --blue: #378add;
+            --red: #e24b4a;
+            --gray: #3a3c46;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 12px;
+            padding: 24px;
+            max-width: 700px;
+        }
+
+        .nav-link {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: block;
+            margin-bottom: 16px;
+        }
+        .nav-link:hover { color: var(--teal); }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 300;
+            color: var(--text-bright);
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        .subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+        .card-header {
+            padding: 7px 14px;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            background: var(--surface-alt);
+        }
+        .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .dot-blue { background: var(--blue); }
+        .dot-teal { background: var(--teal); }
+
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            padding: 8px 14px;
+            text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            background: var(--surface-alt);
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+        }
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border-dim);
+            vertical-align: middle;
+        }
+        tr:last-child td { border-bottom: none; }
+
+        .tag-name {
+            color: var(--blue);
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .book-count {
+            color: var(--text-dim);
+            font-size: 11px;
+            font-variant-numeric: tabular-nums;
+        }
+        .actions { display: flex; gap: 6px; justify-content: flex-end; align-items: center; }
+
+        .btn {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-family: inherit;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+        .btn-ghost { background: var(--surface-alt); color: var(--text-muted); }
+        .btn-ghost:hover { color: var(--text-primary); }
+        .btn-danger { background: #1a0808; color: var(--red); border-color: #7a1414; }
+        .btn-danger:hover { background: #220a0a; }
+        .btn-save { background: var(--teal-bg); color: var(--teal); border-color: var(--teal-border); }
+        .btn-save:hover { background: #0d1f18; }
+
+        .rename-input {
+            background: var(--surface-alt);
+            border: 1px solid var(--blue);
+            color: var(--text-primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+            outline: none;
+            width: 180px;
+        }
+
+        .empty-state {
+            padding: 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        /* Merge card */
+        .merge-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+        .merge-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .merge-label { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+        .merge-select {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+            outline: none;
+            flex: 1;
+            min-width: 140px;
+        }
+        .merge-select:focus { border-color: var(--blue); }
+        .btn-merge {
+            background: #0d1a2e;
+            color: var(--blue);
+            border: 1px solid #1a3a5c;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-merge:hover { background: #122040; }
+        .merge-hint { font-size: 10px; color: var(--text-muted); }
+        .msg { font-size: 11px; min-height: 1.4em; }
+        .msg-ok { color: var(--teal); }
+        .msg-err { color: var(--red); }
+    </style>
+</head>
+<body>
+
+    <a href="/" class="nav-link">← Back to Library</a>
+    <h1>Tag Management</h1>
+    <div class="subtitle">Caliper · Admin</div>
+
+    <!-- Tag List -->
+    <div class="card">
+        <div class="card-header">
+            <div class="dot dot-blue"></div>
+            All Tags
+            <span style="margin-left:auto;font-size:9px;color:var(--text-dim)">{{ tags|length }} tag{{ 's' if tags|length != 1 else '' }}</span>
+        </div>
+        {% if tags %}
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:50%">Tag</th>
+                    <th>Books</th>
+                    <th style="text-align:right">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tagTableBody">
+                {% for tag in tags %}
+                <tr id="row-{{ tag.id }}">
+                    <td>
+                        <span class="tag-name" id="name-{{ tag.id }}">{{ tag.name }}</span>
+                        <input class="rename-input" id="input-{{ tag.id }}" value="{{ tag.name }}"
+                               style="display:none" onkeydown="handleRenameKey(event, {{ tag.id }})">
+                    </td>
+                    <td class="book-count">{{ tag.book_count }}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn btn-ghost" id="edit-btn-{{ tag.id }}"
+                                    onclick="startRename({{ tag.id }})">Rename</button>
+                            <button class="btn btn-save" id="save-btn-{{ tag.id }}"
+                                    style="display:none" onclick="saveRename({{ tag.id }})">Save</button>
+                            <button class="btn btn-ghost" id="cancel-btn-{{ tag.id }}"
+                                    style="display:none" onclick="cancelRename({{ tag.id }}, '{{ tag.name }}')">Cancel</button>
+                            <button class="btn btn-danger"
+                                    onclick="deleteTag({{ tag.id }}, '{{ tag.name }}', {{ tag.book_count }})">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">No tags yet. Add tags from any book's detail page.</div>
+        {% endif %}
+    </div>
+
+    <!-- Merge -->
+    {% if tags|length >= 2 %}
+    <div class="card">
+        <div class="card-header">
+            <div class="dot dot-teal"></div>
+            Merge Tags
+        </div>
+        <div class="merge-body">
+            <div class="merge-row">
+                <span class="merge-label">Merge</span>
+                <select class="merge-select" id="mergeSource">
+                    {% for tag in tags %}
+                    <option value="{{ tag.id }}">{{ tag.name }} ({{ tag.book_count }})</option>
+                    {% endfor %}
+                </select>
+                <span class="merge-label">into</span>
+                <select class="merge-select" id="mergeTarget">
+                    {% for tag in tags %}
+                    <option value="{{ tag.id }}" {% if loop.index == 2 %}selected{% endif %}>{{ tag.name }} ({{ tag.book_count }})</option>
+                    {% endfor %}
+                </select>
+                <button class="btn-merge" onclick="mergeTags()">Merge</button>
+            </div>
+            <div class="merge-hint">The source tag will be deleted and all its books will be moved to the target tag.</div>
+            <div class="msg" id="mergeMsg"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        function startRename(id) {
+            document.getElementById('name-' + id).style.display = 'none';
+            document.getElementById('input-' + id).style.display = 'inline-block';
+            document.getElementById('edit-btn-' + id).style.display = 'none';
+            document.getElementById('save-btn-' + id).style.display = 'inline-block';
+            document.getElementById('cancel-btn-' + id).style.display = 'inline-block';
+            document.getElementById('input-' + id).focus();
+        }
+
+        function cancelRename(id, original) {
+            document.getElementById('input-' + id).value = original;
+            document.getElementById('name-' + id).style.display = 'inline';
+            document.getElementById('input-' + id).style.display = 'none';
+            document.getElementById('edit-btn-' + id).style.display = 'inline-block';
+            document.getElementById('save-btn-' + id).style.display = 'none';
+            document.getElementById('cancel-btn-' + id).style.display = 'none';
+        }
+
+        function handleRenameKey(e, id) {
+            if (e.key === 'Enter') saveRename(id);
+            if (e.key === 'Escape') cancelRename(id, document.getElementById('name-' + id).textContent);
+        }
+
+        function saveRename(id) {
+            const input = document.getElementById('input-' + id);
+            const name = input.value.trim();
+            if (!name) return;
+            fetch(`/api/tags/${id}/rename`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) { alert(data.error); return; }
+                document.getElementById('name-' + id).textContent = name;
+                cancelRename(id, name);
+                updateMergeOptions(id, name);
+            });
+        }
+
+        function deleteTag(id, name, count) {
+            const msg = count > 0
+                ? `Delete "${name}"? It will be removed from ${count} book${count !== 1 ? 's' : ''}.`
+                : `Delete "${name}"?`;
+            if (!confirm(msg)) return;
+            fetch(`/api/tags/${id}`, {method: 'DELETE'})
+            .then(r => r.json())
+            .then(() => {
+                document.getElementById('row-' + id).remove();
+                removeMergeOption(id);
+            });
+        }
+
+        function updateMergeOptions(id, name) {
+            ['mergeSource', 'mergeTarget'].forEach(selectId => {
+                const opt = document.querySelector(`#${selectId} option[value="${id}"]`);
+                if (opt) {
+                    const count = opt.textContent.match(/\((\d+)\)/)?.[1] || '0';
+                    opt.textContent = `${name} (${count})`;
+                }
+            });
+        }
+
+        function removeMergeOption(id) {
+            ['mergeSource', 'mergeTarget'].forEach(selectId => {
+                const opt = document.querySelector(`#${selectId} option[value="${id}"]`);
+                if (opt) opt.remove();
+            });
+        }
+
+        function mergeTags() {
+            const sourceId = parseInt(document.getElementById('mergeSource').value);
+            const targetId = parseInt(document.getElementById('mergeTarget').value);
+            const msg = document.getElementById('mergeMsg');
+            if (sourceId === targetId) { msg.textContent = 'Source and target must be different.'; msg.className = 'msg msg-err'; return; }
+            const sourceName = document.querySelector(`#mergeSource option[value="${sourceId}"]`).textContent;
+            const targetName = document.querySelector(`#mergeTarget option[value="${targetId}"]`).textContent;
+            if (!confirm(`Merge "${sourceName}" into "${targetName}"? This cannot be undone.`)) return;
+            fetch('/api/tags/merge', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({source_id: sourceId, target_id: targetId})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) { msg.textContent = data.error; msg.className = 'msg msg-err'; return; }
+                msg.textContent = 'Merged successfully.';
+                msg.className = 'msg msg-ok';
+                document.getElementById('row-' + sourceId).remove();
+                removeMergeOption(sourceId);
+            });
+        }
+    </script>
+
+</body>
+</html>

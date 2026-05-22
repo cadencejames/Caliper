@@ -144,10 +144,11 @@ The CSV format matches the export exactly. `read_status` values are case-sensiti
 
 ## 🛣️ Roadmap & Versioning
 
-**Current Version:** v2.3.1
+**Current Version:** v2.3.2
 
 ### Changelog
 
+**v2.3.2** - Tag Management page (`/tags`): view all tags with book counts, inline rename (Enter to save, Escape to cancel), delete with confirmation, and a merge tool to consolidate duplicate tags. Linked from the admin nav.  
 **v2.3.1** - Genre field: dedicated `genre` column on books table. Displays as an amber badge on the detail page. Editable via add/edit form. Filterable via genre dropdown on the index page and queryable in advanced search. Included in CSV import/export.  
 **v2.3.0** - Tagging System: custom user-defined tags stored in a relational `tags` table. Inline tag editor on the book detail page with autocomplete typeahead — select existing tags or create new ones on the fly. Tags display as blue badges on the detail page and are clickable to filter the library. Tag filter dropdown added to the index page.  
 **v2.2.0** - TBR Shuffle (`/random`): picks a random To Read book and presents it on a reveal page with cover art, title, author, series, and format. Includes "Let's Read It" and "Pick Again" buttons. Empty TBR shows a friendly message.  
@@ -174,9 +175,9 @@ The CSV format matches the export exactly. `read_status` values are case-sensiti
 - [x] **Data Import/Export:** CSV export and import with a preview/confirm flow. Admin-only.
 
 ### Phase 3: Architecture & Enrichment (In Progress)
-- [ ] **Barcode Scanning:** Native camera integration to add books by scanning physical barcodes.
+- [ ] **Barcode Scanning:** Native camera integration to add books by scanning physical barcodes (deferred — high complexity, browser compatibility uncertainty).
 - [x] **Tagging System:** Custom user-defined tags with inline editor, autocomplete, clickable badge filtering, and index filter dropdown.
-- [ ] **Tag Management:** Admin page to view all tags, rename, merge duplicates, and delete unused tags.
+- [x] **Tag Management:** Admin page to view all tags with book counts, inline rename, delete, and merge to consolidate duplicates.
 
 ### Phase 4: Relational Data (Planned)
 - [ ] **Author Table:** Relational `Authors` table with enriched metadata (nationality, gender, birth year) sourced via API with manual override.
