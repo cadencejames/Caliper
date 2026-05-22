@@ -66,6 +66,11 @@ def clean_str(val):
     stripped = val.strip()
     return stripped if stripped else None
 
+def normalize_genre(val):
+    if not val: return None
+    parts = [p.strip() for p in val.split(',') if p.strip()]
+    return ', '.join(parts) if parts else None
+
 VALID_READ_STATUSES = {'Read', 'To Read', 'DNF', 'Reference'}
 
 def _parse_import_row(row):
@@ -108,7 +113,7 @@ def _parse_import_row(row):
         'notes': clean_str(row.get('notes', '')),
         'cover_url': clean_str(row.get('cover_url', '')),
         'cover_filename': clean_str(row.get('cover_filename', '')),
-        'genre': clean_str(row.get('genre', '')),
+        'genre': normalize_genre(row.get('genre', '')),
     }, None
 
 # --- ROUTES ---
@@ -158,8 +163,8 @@ def index():
         params.append(tag_param)
 
     if genre_param:
-        where_parts.append("genre = ?")
-        params.append(genre_param)
+        where_parts.append("(',' || REPLACE(REPLACE(genre, ' ,', ','), ', ', ',') || ',') LIKE ('%,' || ? || ',%')")
+        params.append(genre_param.strip())
 
     where_clause = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
 
@@ -193,8 +198,16 @@ def index():
     
     books_raw = conn.execute(final_query, params).fetchall()
     all_tags = conn.execute('SELECT name FROM tags ORDER BY name').fetchall()
-    all_genres = conn.execute('SELECT DISTINCT genre FROM books WHERE genre IS NOT NULL AND genre != "" ORDER BY genre').fetchall()
+    genre_rows = conn.execute('SELECT genre FROM books WHERE genre IS NOT NULL AND genre != ""').fetchall()
     conn.close()
+
+    all_genres_set = set()
+    for row in genre_rows:
+        for g in row['genre'].split(','):
+            g = g.strip()
+            if g:
+                all_genres_set.add(g)
+    all_genres = sorted(all_genres_set)
 
     # Process Bindings
     books = []
@@ -349,7 +362,7 @@ if not IS_READ_ONLY:
                 'notes': clean_str(request.form.get('notes')),
                 'cover_url': clean_str(request.form.get('cover_url')),
                 'cover_filename': clean_str(request.form.get('cover_filename')),
-                'genre': clean_str(request.form.get('genre')),
+                'genre': normalize_genre(request.form.get('genre')),
             }
 
             conn = get_db_connection()
@@ -420,7 +433,7 @@ if not IS_READ_ONLY:
                 'notes': clean_str(request.form.get('notes')),
                 'cover_url': clean_str(request.form.get('cover_url')),
                 'cover_filename': clean_str(request.form.get('cover_filename')),
-                'genre': clean_str(request.form.get('genre')),
+                'genre': normalize_genre(request.form.get('genre')),
                 'id': book_id
             }
 

@@ -328,7 +328,12 @@
                     <div class="book-author">{{ book['author'] }}</div>
                     <div class="badges-row">
                         {% if book['genre'] %}
-                            <span class="badge badge-genre">{{ book['genre'] }}</span>
+                            {% for g in book['genre'].split(',') %}
+                                {% set gtrim = g.strip() %}
+                                {% if gtrim %}
+                                    <a href="/?genre={{ gtrim | urlencode }}" class="badge badge-genre" style="text-decoration:none">{{ gtrim }}</a>
+                                {% endif %}
+                            {% endfor %}
                         {% endif %}
                         {% if book['read_status'] == 'Read' %}
                             <span class="badge badge-read">Read</span>

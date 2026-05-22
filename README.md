@@ -32,7 +32,7 @@ Built with **Python (Flask)**, **SQLite**, and **Docker**.
 *   **Data Import/Export:** One-click CSV export of your full library. CSV import with a preview/confirm step — review all rows before anything is saved, with skipped rows shown with reasons.
 *   **TBR Shuffle:** A "Shuffle" button picks a random book from your To Read pile and presents it on a reveal page with cover art, series info, and the option to pick again.
 *   **Tagging System:** Add custom tags to any book via an inline editor with autocomplete. Tags are displayed as badges on the detail page and are clickable to filter the full library. Filter the index by tag via the tag dropdown.
-*   **Genre:** Dedicated genre field displayed as an amber badge on the detail page. Filterable on the index and queryable in advanced search.
+*   **Genre:** Dedicated genre field supporting multiple comma-separated values. Each genre displays as a clickable amber badge on the detail page and filters the library. Filterable via dropdown on the index and queryable in advanced search.
 
 ---
 
@@ -144,10 +144,11 @@ The CSV format matches the export exactly. `read_status` values are case-sensiti
 
 ## 🛣️ Roadmap & Versioning
 
-**Current Version:** v2.3.2
+**Current Version:** v2.3.3
 
 ### Changelog
 
+**v2.3.3** - Multi-genre support: genre field now accepts comma-separated values (e.g. "Fantasy, Sci-Fi"). Each genre displays as a separate amber badge on the detail page, each clickable to filter the library. The genre dropdown on the index page lists individual genres deduped across all books. Genre is normalized on save (whitespace stripped, canonical comma spacing).  
 **v2.3.2** - Tag Management page (`/tags`): view all tags with book counts, inline rename (Enter to save, Escape to cancel), delete with confirmation, and a merge tool to consolidate duplicate tags. Linked from the admin nav.  
 **v2.3.1** - Genre field: dedicated `genre` column on books table. Displays as an amber badge on the detail page. Editable via add/edit form. Filterable via genre dropdown on the index page and queryable in advanced search. Included in CSV import/export.  
 **v2.3.0** - Tagging System: custom user-defined tags stored in a relational `tags` table. Inline tag editor on the book detail page with autocomplete typeahead — select existing tags or create new ones on the fly. Tags display as blue badges on the detail page and are clickable to filter the library. Tag filter dropdown added to the index page.  

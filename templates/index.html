@@ -274,7 +274,7 @@
             <select class="sort-select" id="genreSelect" onchange="updateParams()">
                 <option value="" {% if not current_genre %}selected{% endif %}>Genre: All</option>
                 {% for genre in all_genres %}
-                <option value="{{ genre['genre'] }}" {% if current_genre == genre['genre'] %}selected{% endif %}>{{ genre['genre'] }}</option>
+                <option value="{{ genre }}" {% if current_genre == genre %}selected{% endif %}>{{ genre }}</option>
                 {% endfor %}
             </select>
 
